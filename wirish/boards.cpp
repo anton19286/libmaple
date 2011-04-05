@@ -56,7 +56,7 @@ void init(void) {
     afio_init();
     setupADC();
     setupTimers();
-#ifndef(BOARD_discovery)
+#ifndef MCU_STM32F100RB
     setupUSB();
 #endif
     boardInit();
@@ -87,7 +87,7 @@ static void setupFlash(void) {
  * comment above.
  */
 static void setupClocks() {
-#ifdef(BOARD_discovery)
+#ifdef MCU_STM32F100RB
     rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL_3);
 #else
     rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL_9);

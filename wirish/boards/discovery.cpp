@@ -83,7 +83,7 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOC,   NULL, NULL,  6, 0, ADCx}, /* D35/PC6 */
     {GPIOC,   NULL, NULL,  7, 0, ADCx}, /* D36/PC7 */
     {GPIOC,   NULL, NULL,  8, 0, ADCx}, /* D37/PC8 (Blue led)*/
-    {GPIOC,   NULL, NULL,  9, 0, ADCx}  /* D38/PC9 (Green led)*/
+    {GPIOC,   NULL, NULL,  9, 0, ADCx}, /* D38/PC9 (Green led)*/
     {GPIOA, TIMER1, NULL, 11, 4, ADCx}, /* D39/PA11 */
     {GPIOA,   NULL, NULL, 12, 0, ADCx}, /* D40/PA12 */
     {GPIOA,   NULL, NULL, 15, 0, ADCx}, /* D41/PA15 */
@@ -91,7 +91,7 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOB,   NULL, NULL,  3, 0, ADCx}, /* D43/PB3 */
     {GPIOB,   NULL, NULL,  4, 0, ADCx}, /* D44/PB4 */
     {GPIOC,   NULL, NULL, 11, 0, ADCx}, /* D45/PC11 */
-    {GPIOC,   NULL, NULL, 12, 0, ADCx}, /* D46/PC12 */
+    {GPIOC,   NULL, NULL, 12, 0, ADCx}  /* D46/PC12 */
 };
 
 extern const uint8 boardPWMPins[] __FLASH__ = {
