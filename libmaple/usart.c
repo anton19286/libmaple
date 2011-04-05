@@ -142,7 +142,7 @@ void usart_init(uint8 usart_num, uint32 baud) {
     nvic_irq_enable(usart_dev_table[usart_num].nvic_dev_num);
 
     /* usart1 is mad fast  */
-    clk_speed = (usart_num == USART1) ? 72000000UL : 36000000UL;
+    clk_speed = (usart_num == USART1) ? PCLK2 : PCLK1;
 
     /* Initialize rx ring buffer  */
     rb_init(&usart_dev_table[usart_num].rb,
