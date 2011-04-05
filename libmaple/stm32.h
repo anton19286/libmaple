@@ -5,7 +5,7 @@
 #ifndef _STM32_H_
 #define _STM32_H_
 
-#ifdef(BOARD_discovery)
+#ifdef MCU_STM32F100RB
 	#define PCLK1   12000000U
 	#define PCLK2   24000000U
 #else
