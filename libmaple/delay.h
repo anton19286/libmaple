@@ -7,7 +7,11 @@
 
 static inline void delay_us(uint32 us) {
     /* So (2^32)/12 micros max, or less than 6 minutes */
+#ifdef MCU_STM32F100RB
+    us *= 4;
+#else
     us *= 12;
+#endif
 
     /* fudge for function call overhead  */
     us--;
