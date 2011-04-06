@@ -62,7 +62,7 @@ static i2c_dev i2c_dev2 = {
 
 i2c_dev* const I2C2 = &i2c_dev2;
 
-trying to understand gitstruct crumb {
+struct crumb {
     uint32 event;
     uint32 sr1;
     uint32 sr2;
