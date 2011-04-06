@@ -46,46 +46,6 @@ ifeq ($(BOARD), discovery)
    DENSITY := STM32_MEDIUM_DENSITY
 endif
 
-# Useful paths
-ifeq ($(LIB_MAPLE_HOME),)
-SRCROOT := .
-else
-SRCROOT := $(LIB_MAPLE_HOME)
-endif
-BUILD_PATH = build
-LIBMAPLE_PATH := $(SRCROOT)/libmaple
-SUPPORT_PATH := $(SRCROOT)/support
-
-# Compilation flags.
-# FIXME remove the ERROR_LED config
-GLOBAL_CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
-		   -nostdlib					     \
-		   -ffunction-sections -fdata-sections -Wl,--gc-sections     \
-		   -DBOARD_$(BOARD) -DMCU_$(MCU)			     \
-		   -DERROR_LED_PORT=$(ERROR_LED_PORT)			     \
-		   -DERROR_LED_PIN=$(ERROR_LED_PIN)			     \
-		   -D$(DENSITY)
-GLOBAL_CXXFLAGS := -fno-rtti -fno-exceptions -Wall			     \
-		   -DBOARD_$(BOARD) -DMCU_$(MCU)			     \
-		   -DERROR_LED_PORT=$(ERROR_LED_PORT)			     \
-		   -DERROR_LED_PIN=$(ERROR_LED_PIN)			     \
-		   -D$(DENSITY)
-GLOBAL_ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
-		   -x assembler-with-cpp				     \
-		   -DBOARD_$(BOARD) -DMCU_$(MCU)			     \
-		   -DERROR_LED_PORT=$(ERROR_LED_PORT)			     \
-		   -DERROR_LED_PIN=$(ERROR_LED_PIN)			     \
-		   -D$(DENSITY)
-
-LDDIR    := $(SUPPORT_PATH)/ld
-LDFLAGS  = -T$(LDDIR)/$(LDSCRIPT) -L$(LDDIR)    \
-            -mcpu=cortex-m3 -mthumb -Xlinker     \
-            --gc-sections --print-gc-sections --march=armv7-m -Wall
-
-# Set up build rules and some useful templates
-include $(SUPPORT_PATH)/make/build-rules.mk
-include $(SUPPORT_PATH)/make/build-templates.mk
-
 # Some target specific things
 ifeq ($(MEMORY_TARGET), ram)
    LDSCRIPT := $(BOARD)/ram.ld
@@ -100,11 +60,44 @@ ifeq ($(MEMORY_TARGET), jtag)
    VECT_BASE_ADDR := VECT_TAB_BASE
 endif
 
+# Useful paths
+ifeq ($(LIB_MAPLE_HOME),)
+SRCROOT := .
+else
+SRCROOT := $(LIB_MAPLE_HOME)
+endif
+BUILD_PATH = build
+LIBMAPLE_PATH := $(SRCROOT)/libmaple
+SUPPORT_PATH := $(SRCROOT)/support
+
+# Compilation flags.
+# FIXME remove the ERROR_LED config
+GLOBAL_FLAGS    := -D$(VECT_BASE_ADDR)					     \
+		   -DBOARD_$(BOARD) -DMCU_$(MCU)			     \
+		   -DERROR_LED_PORT=$(ERROR_LED_PORT)			     \
+		   -DERROR_LED_PIN=$(ERROR_LED_PIN)			     \
+		   -D$(DENSITY) 
+GLOBAL_CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
+		   -nostdlib -ffunction-sections -fdata-sections	     \
+		   -Wl,--gc-sections $(GLOBAL_FLAGS)
+GLOBAL_CXXFLAGS := -fno-rtti -fno-exceptions -Wall $(GLOBAL_FLAGS)
+GLOBAL_ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
+		   -x assembler-with-cpp $(GLOBAL_FLAGS)
+
+LDDIR    := $(SUPPORT_PATH)/ld
+LDFLAGS  = -T$(LDDIR)/$(LDSCRIPT) -L$(LDDIR)    \
+            -mcpu=cortex-m3 -mthumb -Xlinker     \
+            --gc-sections --print-gc-sections --march=armv7-m -Wall
+
+# Set up build rules and some useful templates
+include $(SUPPORT_PATH)/make/build-rules.mk
+include $(SUPPORT_PATH)/make/build-templates.mk
+
 # Set all submodules here
 LIBMAPLE_MODULES := $(SRCROOT)/libmaple
 LIBMAPLE_MODULES += $(SRCROOT)/wirish
 # Official libraries:
-# LIBMAPLE_MODULES += $(SRCROOT)/libraries/Servo
+LIBMAPLE_MODULES += $(SRCROOT)/libraries/Servo
 LIBMAPLE_MODULES += $(SRCROOT)/libraries/LiquidCrystal
 LIBMAPLE_MODULES += $(SRCROOT)/libraries/Wire
 
