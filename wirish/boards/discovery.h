@@ -67,5 +67,12 @@
  * these are just BOARD_LED_PIN and BOARD_BUTTON_PIN. */
 #define BOARD_NR_USED_PINS       2
 
+/* Save Maple pin order and define aliases */
+enum {
+	PA3, PA2, PA0, PA1, PB5, PB6, PA8, PA9, PA10, PB7, PA4, PA7, PA6, PA5, 
+	PB8, PC0, PC1, PC2, PC3, PC4, PC5, PC13, PC14, PC15, PB9, PD2, PC10, 
+	PB0, PB1, PB10, PB11, PB12, PB13, PB14, PB15, PC6, PC7, PC8, PC9, 
+	PA11, PA12, PA15, PB2, PB3, PB4, PC11, PC12 };
+
 #endif
 
