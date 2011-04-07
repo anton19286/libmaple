@@ -100,7 +100,8 @@ extern i2c_dev* const I2C1;
 #define I2C_CR2_FREQ            0xFFF           // Peripheral input frequency
 
 /* Clock control register bits */
-#define I2C_CCR_FS              BIT(15)         // Master mode selection
+#define I2C_CCR_FS              BIT(15)         // Fast mode selection
+#define I2C_CCR_DUTY            BIT(14)         // 16/9 duty ratio
 #define I2C_CCR_CCR             0xFFF           // Clock control bits
 
 /* Status register 1 bits  */
