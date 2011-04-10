@@ -71,8 +71,8 @@ typedef struct i2c_dev {
     i2c_msg *msg;
 } i2c_dev;
 
-
 extern i2c_dev* const I2C1;
+extern i2c_dev* const I2C2;
 
 #define I2C1_BASE               (i2c_reg_map*)0x40005400
 #define I2C2_BASE               (i2c_reg_map*)0x40005800
