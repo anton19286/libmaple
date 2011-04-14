@@ -35,6 +35,8 @@
 #ifndef _RING_BUFFER_H_
 #define _RING_BUFFER_H_
 
+#include "libmaple_types.h"
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -79,7 +81,7 @@ static inline void rb_init(ring_buffer *rb, uint16 size, uint8 *buf) {
  * @param rb Buffer whose elements to count.
  */
 static inline uint16 rb_full_count(ring_buffer *rb) {
-    volatile ring_buffer *arb = rb;
+    __io ring_buffer *arb = rb;
     int32 size = arb->tail - arb->head;
     if (arb->tail < arb->head) {
         size += arb->size + 1;
@@ -89,7 +91,7 @@ static inline uint16 rb_full_count(ring_buffer *rb) {
 
 /**
  * @brief Returns true if and only if the ring buffer is full.
- * @brief rb Buffer to test.
+ * @param rb Buffer to test.
  */
 static inline int rb_is_full(ring_buffer *rb) {
     return (rb->tail + 1 == rb->head) ||
@@ -139,8 +141,8 @@ static inline int16 rb_safe_remove(ring_buffer *rb) {
 /**
  * @brief Attempt to insert an element into a ring buffer.
  *
- * @brief rb Buffer to insert into.
- * @brief element Value to insert into rb.
+ * @param rb Buffer to insert into.
+ * @param element Value to insert into rb.
  * @sideeffect If rb is not full, appends element onto buffer.
  * @return If element was appended, then true; otherwise, false. */
 static inline int rb_safe_insert(ring_buffer *rb, uint8 element) {

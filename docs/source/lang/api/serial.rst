@@ -12,6 +12,9 @@ devices.
 Introduction
 ------------
 
+.. FIXME remove Maple-specific documentation
+.. FIXME Serial4, Serial5 updates for high-density devices
+
 The Maple has three serial ports (also known as a UARTs or USARTs):
 ``Serial1``, ``Serial2``, and ``Serial3``. They communicate using the
 pins summarized in the following table:
@@ -113,34 +116,25 @@ means that you can use any of these functions on any of ``Serial1``,
 
    Print the argument's digits over the USART, in decimal format.
 
-.. cpp:function:: HardwareSerial::print(long long n)
+.. cpp:function:: HardwareSerial::print(long n)
 
    Print the argument's digits over the USART, in decimal format.
    Negative values will be prefixed with a ``'-'`` character.
 
-.. cpp:function:: HardwareSerial::print(unsigned long long n)
+.. cpp:function:: HardwareSerial::print(unsigned long n)
 
    Print the argument's digits over the USART, in decimal format.
 
-.. _lang-serial-print-n-base:
+.. cpp:function:: HardwareSerial::print(long n, int base)
 
-.. cpp:function:: HardwareSerial::print(int n, int base)
-
-   Print the digits of ``n`` over the USART, in base ``base``.  The
-   ``base`` value 2 corresponds to binary, 8 to octal, 10 to decimal,
-   and 16 to hexadecimal (you can also use the symbolic constants
-   ``BIN``, ``OCT``, ``DEC``, ``HEX``).  If ``base`` is 10, negative
-   values will be prefixed with a ``'-'`` character (otherwise, ``n``
-   will be interpreted as an unsigned quantity).
-
-.. cpp:function:: HardwareSerial::print(long long n, int base)
-
-   Same behavior as the above :ref:`print(int n, int base)
-   <lang-serial-print-n-base>`, except with 64-bit values.
+   Print the digits of ``n`` over the USART, in base ``base`` (which
+   may be between 2 and 16).  The ``base`` value 2 corresponds to
+   binary, 8 to octal, 10 to decimal, and 16 to hexadecimal.  Negative
+   values will be prefixed with a ``'-'`` character.
 
 .. cpp:function:: HardwareSerial::print(double n)
 
-   Print ``n``, accurate to 6 digits after the decimal point.
+   Print ``n``, accurate to 2 digits after the decimal point.
 
 .. _lang-serial-println:
 
@@ -164,19 +158,15 @@ means that you can use any of these functions on any of ``Serial1``,
 
    Like ``print(n)``, followed by ``"\r\n"``.
 
-.. cpp:function:: HardwareSerial::println(long long n)
+.. cpp:function:: HardwareSerial::println(long n)
 
    Like ``print(n)``, followed by ``"\r\n"``.
 
-.. cpp:function:: HardwareSerial::println(unsigned long long n)
+.. cpp:function:: HardwareSerial::println(unsigned long n)
 
    Like ``print(n)``, followed by ``"\r\n"``.
 
-.. cpp:function:: HardwareSerial::println(int n, int base)
-
-   Like ``print(n, b)``, followed by ``"\r\n"``.
-
-.. cpp:function:: HardwareSerial::println(long long n, int base)
+.. cpp:function:: HardwareSerial::println(long n, int base)
 
    Like ``print(n, b)``, followed by ``"\r\n"``.
 
@@ -221,7 +211,7 @@ Arduino Compatibility Note
 Unlike the Arduino, none of the Maple's serial ports is connected to
 the USB port on the Maple board (for that, use :ref:`SerialUSB
 <lang-serialusb>`).  Thus, to use these pins to communicate with your
-personal computer, you will need an additional USB-to-serial adaptor.
+personal computer, you will need an additional USB-to-serial adapter.
 
 .. TODO LATER port these examples over
 

@@ -60,6 +60,20 @@ ifeq ($(MEMORY_TARGET), jtag)
    VECT_BASE_ADDR := VECT_TAB_BASE
 endif
 
+# Some target specific things
+ifeq ($(MEMORY_TARGET), ram)
+   LDSCRIPT := $(BOARD)/ram.ld
+   VECT_BASE_ADDR := VECT_TAB_RAM
+endif
+ifeq ($(MEMORY_TARGET), flash)
+   LDSCRIPT := $(BOARD)/flash.ld
+   VECT_BASE_ADDR := VECT_TAB_FLASH
+endif
+ifeq ($(MEMORY_TARGET), jtag)
+   LDSCRIPT := $(BOARD)/jtag.ld
+   VECT_BASE_ADDR := VECT_TAB_BASE
+endif
+
 # Useful paths
 ifeq ($(LIB_MAPLE_HOME),)
 SRCROOT := .
