@@ -10,7 +10,7 @@ static inline void delay_us(uint32 us) {
      * config; add a hook so users can make their own decisions. */
     /* So (2^32)/12 micros max, or less than 6 minutes */
 #ifdef MCU_STM32F100RB
-    us *= 4;
+    us *= 8;
 #else
     us *= 12;
 #endif
