@@ -16,52 +16,55 @@ This code is released with no strings attached.
 
 #include "wirish.h"
 #include "i2c.h"
-#include <c:\anton\libmaple\libraries\Servo\Servo.h>
+#include "exti.h"
 
-// Declare the interrupt handler routines
-void handler_CH1 (void);
-void handler_CH2 (void);
-void handler_CH3 (void);
-void handler_CH4 (void);
+//#define PRINT_TELEMETRY
+
+// Declare the interrupt handler routine
+void measurePulseWidthISR();
 
  // Declare called routines
 void InitWii(void);
 void ReadWii(uint8 *buf);
 void CalibrateGyros(void);
 
-// Create servo object to control the yaw servo
-Servo yawservo;
+#define ROLL 0
+#define PITCH 1
+#define YAW 2
+#define THROTTLE 3
+#define LASTCHANNEL 4
+
+#define RISING_EDGE 1
+#define FALLING_EDGE 0
+#define MINONWIDTH 950
+#define MAXONWIDTH 2075
+#define MINOFFWIDTH 12000
+#define MAXOFFWIDTH 24000
+
+// Channel data
+typedef struct {
+  byte edge;
+  unsigned long riseTime;
+  unsigned long fallTime;
+  unsigned int  lastGoodWidth;
+} tPinTimingData;
+ 
+// Global variables for use in interrupt routines
+volatile static tPinTimingData pinData[LASTCHANNEL];
 
  // I/O pin assignments
-const int Chan1Pin        = PA8; // 6 Input from RC receiver Pitch
-const int Chan2Pin        = PA9; // 7 Input from RC receiver Roll
-const int Chan3Pin        = PD2; // 25 Input from RC receiver Throttle
-const int Chan4Pin        = PC6; // 35 Input from RC receiver Yaw
+
+// 5V tolerant pins from different EXTI channels used for ROLL, PITCH, YAW, THROTTLE 
+static byte receiverPin[4] = {PA8, PA9, PC6, PB14}; 
+
+// ESC PWM pins
 const int Esc1Pin         = PA6; // 12 Timer3,1 Front motor, ESC #1
 const int Esc2Pin         = PA7; // 11 Timer3,2 Left motor, ESC #2
 const int Esc3Pin         = PB0; // 27 Timer3,3 Right motor, ESC #3
 const int Esc4Pin         = PB1; // 28 Timer3,4 Rear motor, ESC #4
 
-
- // Global variables for use in interrupt routines
-volatile unsigned int chan1begin   = 0;
-volatile unsigned int chan1end     = 0;
-volatile unsigned int RxInPitch    = 0;
-volatile unsigned int chan1prev    = 0;
-volatile unsigned int chan2begin   = 0;
-volatile unsigned int chan2end     = 0;
-volatile unsigned int RxInRoll     = 0;
-volatile unsigned int chan2prev    = 0;
-volatile unsigned int chan3begin   = 0;
-volatile unsigned int chan3end     = 0;
-volatile unsigned int RxInThrottle = 0;
-volatile unsigned int chan3prev    = 0;
-volatile unsigned int chan4begin   = 0;
-volatile unsigned int chan4end     = 0;
-volatile unsigned int RxInYaw      = 0;
-volatile unsigned int chan4prev    = 0;
-
 // Global variables
+
 // This group is adjusted according to flying style and taste.
 int PitchGyroScale    = 8;    // sensitivity multiplier value for gyro
 int RollGyroScale     = 9;    // sensitivity multiplier value for gyro
@@ -96,10 +99,12 @@ void setup()
     pinMode(BOARD_LED_PIN,  OUTPUT);
 
     // Set up the RC receiver pins as inputs
-    pinMode(Chan1Pin, INPUT);
-    pinMode(Chan2Pin, INPUT);
-    pinMode(Chan3Pin, INPUT);
-    pinMode(Chan4Pin, INPUT);
+    // Attach the RC receiver pins to their interrupt handlers
+    for (int channel = ROLL; channel < LASTCHANNEL; channel++) {
+      pinMode(receiverPin[channel], INPUT);
+      pinData[receiverPin[channel]].edge = FALLING_EDGE;
+      attachInterrupt(receiverPin[channel], measurePulseWidthISR, CHANGE);           
+    }
 
     // Set up the ESC pins as PWM outputs on Timer4
     pinMode(Esc1Pin, PWM);
@@ -107,14 +112,7 @@ void setup()
     pinMode(Esc3Pin, PWM);
     pinMode(Esc4Pin, PWM);
 
-    // Attach the RC receiver pins to their interrupt handlers
-    attachInterrupt(Chan1Pin, handler_CH1, CHANGE);
-    attachInterrupt(Chan2Pin, handler_CH2, CHANGE);
-    attachInterrupt(Chan3Pin, handler_CH3, CHANGE);
-    attachInterrupt(Chan4Pin, handler_CH4, CHANGE);
-
-     delay(1500);                      // Time to accumulate a few interrupts.
-
+    delay(1500);                      // Time to accumulate a few interrupts.
 
     // Setup pwm Timers for the ESC's
     timer_set_mode(TIMER3, TIMER_CH1, TIMER_PWM);
@@ -126,91 +124,54 @@ void setup()
     timer_set_reload(TIMER3, 60000);   //Sets the period of the PWM signal
     timer_resume(TIMER3);              // if LCD delay, spin up afterwards
 
+#ifdef PRINT_TELEMETRY
     Serial2.begin(115200);
+#endif    
     InitWii();
 
     // Accurate reading if gyros are motionless here... :-)
     CalibrateGyros();
 
      // Accurate reading if sticks are not being moved here... :-)
-    PitchStickZero    = RxInPitch;     // center position stick read
-    RollStickZero     = RxInRoll;      // center position stick read
-    YawStickZero      = RxInYaw;       // center position stick read
-    ThrottleStickZero = RxInThrottle;  // center position stick read
+    PitchStickZero     = pinData[PITCH].lastGoodWidth;        // center position stick read
+    RollStickZero       = pinData[ROLL].lastGoodWidth;          // center position stick read
+    YawStickZero      = pinData[YAW].lastGoodWidth;          // center position stick read
+    ThrottleStickZero = pinData[THROTTLE].lastGoodWidth;  // center position stick read
 }
 
  // Run continuously after running setup()*************************************
 void loop() {
 uint8 buffer[6];
+#ifdef PRINT_TELEMETRY
 int startTag=0xDEAD;
-
- ReadWii(buffer);
-delay(4);
-if (buffer[5] & 0x02) //If WiiMP
-  {
-   YawGyroValue =   ((buffer[3] >> 2) << 8) + buffer[0] - YawGyroZero;
-   PitchGyroValue = ((buffer[4] >> 2) << 8) + buffer[1] - PitchGyroZero;
-   RollGyroValue =  ((buffer[5] >> 2) << 8) + buffer[2] - RollGyroZero;
-  }
+#endif  
 
 
-if(!(buffer[3] & 0x2))
-	PitchGyroValue = 100;
-else
-	PitchGyroValue = 3000;
+    ReadWii(buffer);
+//  delay(44);
+    // General idea for mixer adapted from KKmulticopter derivatives
 
+    // Read the stick and gyro inputs...
 
-/*
-  YawGyroValue = (YawGyroValue*2000)/440;
-YawGyroValue /=2; */
+    RxInPitchHold    = pinData[PITCH].lastGoodWidth;      // Temporary store of rx stick values
+    RxInRollHold     = pinData[ROLL].lastGoodWidth;       // since an interrupted update of
+    RxInThrottleHold = pinData[THROTTLE].lastGoodWidth;   // the value may cause glitch.
+    RxInYawHold      = pinData[YAW].lastGoodWidth;
 
-YawGyroValue += YawGyroZero;
-PitchGyroValue += PitchGyroZero;
-RollGyroValue += RollGyroZero;
-
-
-
-
-  Serial2.write((unsigned byte*)&startTag, 2);  //see diagram on randomhacksofboredom.blogger.com
-  Serial2.write((unsigned byte*)&PitchGyroZero, 2);    //for info on which axis is which
-  Serial2.write((unsigned byte*)&YawGyroZero, 2);
-  Serial2.write((unsigned byte*)&RollGyroZero, 2);
-  Serial2.write((unsigned byte*)&PitchGyroValue, 2);
-  Serial2.write((unsigned byte*)&YawGyroValue, 2);
-  Serial2.write((unsigned byte*)&RollGyroValue, 2);
-
-/*
-
-   Serial2.print("Yaw:");
-   Serial2.print(YawGyroValue);
-if(buffer[3] & 0x2)
-   Serial2.print("S");
-else
-   Serial2.print("F");
-
-   Serial2.print(" Pitch:");
-   Serial2.print(PitchGyroValue);
-if(buffer[3] & 0x1)
-   Serial2.print("S");
-else
-   Serial2.print("F");
-
-   Serial2.print(" Roll:");
-   Serial2.print(RollGyroValue);
-if(buffer[4] & 0x2)
-   Serial2.println("S");
-else
-   Serial2.println("F");
-*/
-
-
-  // General idea for mixer adapted from KKmulticopter derivatives
-
-     // Read the stick and gyro inputs...
-    RxInPitchHold    = RxInPitch;      // Temporary store of rx stick values
-    RxInRollHold     = RxInRoll;       // since an interrupted update of
-    RxInThrottleHold = RxInThrottle;   // the value may cause glitch.
-    RxInYawHold      = RxInYaw;
+    YawGyroValue  = ((buffer[3] >> 2) << 8) + buffer[0];
+    PitchGyroValue = ((buffer[4] >> 2) << 8) + buffer[1];
+    RollGyroValue   = ((buffer[5] >> 2) << 8) + buffer[2];
+	
+#ifdef PRINT_TELEMETRY
+    Serial2.write((unsigned byte*)&startTag, 2);            //processing code in the end of this file
+    Serial2.write((unsigned byte*)&PitchGyroValue, 2);   
+    Serial2.write((unsigned byte*)&YawGyroValue, 2);
+    Serial2.write((unsigned byte*)&RollGyroValue, 2);
+    Serial2.write((unsigned byte*)&RxInPitchHold, 2);    
+    Serial2.write((unsigned byte*)&RxInYawHold, 2);
+    Serial2.write((unsigned byte*)&RxInRollHold, 2);
+    Serial2.write((unsigned byte*)&RxInThrottleHold, 2);
+#endif
 
     RxInPitchHold -= PitchStickZero;   // Offset the Pitch, Roll and Yaw
     RxInRollHold  -= RollStickZero;    // stick values to a +- value
@@ -307,90 +268,60 @@ i2c_msg msgs[2];
 }
 
 void CalibrateGyros(){
-unsigned int i,j=0;
+unsigned int i;
 uint8 buffer[6];
 
- PitchGyroZero = 0;
- RollGyroZero = 0;
- YawGyroZero = 0;
-
-
- for (i=0;i<32;i++){  // Average of 32 readings of gyros
-  ReadWii(buffer);
-  delay(4);
-if (buffer[5] & 0x02) //If WiiMP
-  {
-  YawGyroValue =   ((buffer[3] >> 2) << 8) + buffer[0];
-  PitchGyroValue = ((buffer[4] >> 2) << 8) + buffer[1];
-  RollGyroValue =  ((buffer[5] >> 2) << 8) + buffer[2];
-  PitchGyroZero  += PitchGyroValue;
-  RollGyroZero   += RollGyroValue;
-  YawGyroZero    += YawGyroValue;
-  j++;
-  }
-  toggleLED();
-  delay(30);
- }
- PitchGyroZero = (PitchGyroZero / j);
- RollGyroZero  = (RollGyroZero  / j);
- YawGyroZero   = (YawGyroZero   / j);
+    for (i=0;i<32;i++){  // Average of 32 readings of gyros
+        ReadWii(buffer);
+        delay(4);
+        YawGyroValue =   ((buffer[3] >> 2) << 8) + buffer[0];
+        PitchGyroValue = ((buffer[4] >> 2) << 8) + buffer[1];
+        RollGyroValue =  ((buffer[5] >> 2) << 8) + buffer[2];
+        PitchGyroZero  += PitchGyroValue;
+		RollGyroZero   += RollGyroValue;
+        YawGyroZero    += YawGyroValue;
+        toggleLED();
+        delay(30);
+   }
+   PitchGyroZero = (PitchGyroZero / 32);
+   RollGyroZero  = (RollGyroZero  / 32);
+   YawGyroZero   = (YawGyroZero   / 32);
 }
 
-void handler_CH1(void) {               // Measure RX Pitch duration
-    if(chan1begin == 0){
-     chan1begin = micros(); 
-     chan1prev = RxInPitch;
-    }
-    else{
-     chan1end = micros();
-     RxInPitch = chan1end - chan1begin;
-     if((RxInPitch < 1000) || (RxInPitch > 2000)) //Glitch suppression
-     {RxInPitch = chan1prev; chan1end = 0;}
-     chan1begin = 0;
-    }  
-}    
-    
-void handler_CH2(void) {               // Measure RX Roll duration
-    if(chan2begin == 0){
-     chan2begin = micros(); 
-     chan2prev = RxInRoll;
-    }
-    else{
-     chan2end = micros();
-     RxInRoll = chan2end - chan2begin;
-     if((RxInRoll < 1000) || (RxInRoll > 2000)) //Glitch suppression
-     {RxInRoll = chan2prev; chan2end = 0;}
-     chan2begin = 0;
-    }  
-}    
+void measurePulseWidthISR(){
+    uint32 currentTime;
+    uint32 time;
+    uint8 pin, bit;
+    uint32 mask, pending;
 
-void handler_CH3(void) {               // Measure RX Throttle duration
-    if(chan3begin == 0){
-     chan3begin = micros();
-     chan3prev = RxInThrottle;
-    }
-    else{
-     chan3end = micros();
-     RxInThrottle = chan3end - chan3begin;
-     if((RxInThrottle < 1000) || (RxInThrottle > 2000)) //Glitch suppression
-     {RxInThrottle = chan3prev; chan3end = 0;}
-     chan3begin = 0;
-    }  
-}    
+    pending = GET_BITS(EXTI_BASE->PR, 0, 15);	
+    currentTime = micros();
 
-void handler_CH4(void) {               // Measure RX Yaw duration
-    if(chan4begin == 0){
-     chan4begin = micros(); 
-     chan4prev = RxInYaw;
+    for (byte channel = ROLL; channel < LASTCHANNEL; channel++) {      
+        pin = receiverPin[channel];
+        bit = PIN_MAP[pin].gpio_bit;
+        mask = BIT(bit);
+        if (mask & pending){
+            *bb_perip(&EXTI_BASE->PR, bit) = 1; // clear_pending(bit); 
+            if (digitalRead(pin)){
+                time = currentTime - pinData[channel].fallTime;
+                pinData[channel].riseTime = currentTime;
+                if ((time >= MINOFFWIDTH) && (time <= MAXOFFWIDTH))
+                    pinData[channel].edge = RISING_EDGE;
+                else
+                    pinData[channel].edge = FALLING_EDGE; // invalid rising edge detected
+            } else {
+                time = currentTime - pinData[channel].riseTime;
+                pinData[channel].fallTime = currentTime;
+                if ((time >= MINONWIDTH) && (time <= MAXONWIDTH) && (pinData[channel].edge == RISING_EDGE)) {
+                    pinData[channel].lastGoodWidth = time;
+                    pinData[channel].edge = FALLING_EDGE;
+                }
+            }
+        }  
     }
-    else{
-     chan4end = micros();
-     RxInYaw = chan4end - chan4begin;
-     if((RxInYaw < 1000) || (RxInYaw > 2000)) //Glitch suppression
-     {RxInYaw = chan4prev; chan4end = 0;}
-     chan4begin = 0;
-    }  
-} 
+}  
+
 
 // Force init to be called *first*, i.e. before static object allocation.
 // Otherwise, statically allocated objects that need libmaple may fail.
@@ -407,7 +338,12 @@ int main(void) {
     return 0;
 }
 
-/*
+
+
+
+
+
+/*****************************************************************************
 Processing code by knuckles904 from arduino.cc forum
 // 6-30-2009
 // Original code at http://www.glacialwanderer.com/hobbyrobotics
