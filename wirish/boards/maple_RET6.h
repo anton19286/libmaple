@@ -55,9 +55,25 @@
 #define BOARD_USART3_TX_PIN     29
 #define BOARD_USART3_RX_PIN     30
 
-#define BOARD_NR_GPIO_PINS      39
+#define BOARD_NR_SPI            2
+#define BOARD_SPI1_NSS_PIN      10
+#define BOARD_SPI1_MOSI_PIN     11
+#define BOARD_SPI1_MISO_PIN     12
+#define BOARD_SPI1_SCK_PIN      13
+#define BOARD_SPI2_NSS_PIN      31
+#define BOARD_SPI2_MOSI_PIN     34
+#define BOARD_SPI2_MISO_PIN     33
+#define BOARD_SPI2_SCK_PIN      32
+
+#define BOARD_NR_GPIO_PINS      44
 #define BOARD_NR_PWM_PINS       16
 #define BOARD_NR_ADC_PINS       15
-#define BOARD_NR_USED_PINS      2
+#define BOARD_NR_USED_PINS      7
+
+#define BOARD_JTMS_SWDIO_PIN    39
+#define BOARD_JTCK_SWCLK_PIN    40
+#define BOARD_JTDI_PIN          41
+#define BOARD_JTDO_PIN          42
+#define BOARD_NJTRST_PIN        43
 
 #endif

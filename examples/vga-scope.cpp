@@ -40,7 +40,6 @@
 
 // FIXME: generalize for Native and Mini
 
-#define LED_PIN     BOARD_LED_PIN
 #define ANALOG_PIN 18
 
 // Pinouts -- you also must change the GPIO macros below if you change
@@ -77,7 +76,7 @@
 
 // set has priority, so clear every bit and set some given bits:
 #define VGA_COLOR(c) (*ABSRR = c |                                      \
-                      BIT(RBIT+16) | BIT(GBIT+16) | BIT(BBIT+16))
+                      BIT(RBIT + 16) | BIT(GBIT + 16) | BIT(BBIT + 16))
 
 #define VGA_V_HIGH *ABSRR = BIT(6)
 #define VGA_V_LOW  *ABRR  = BIT(6)
@@ -90,9 +89,9 @@ void isr_stop(void);
 void isr_update(void);
 
 void setup() {
-    pinMode(LED_PIN, OUTPUT);
+    pinMode(BOARD_LED_PIN, OUTPUT);
     pinMode(ANALOG_PIN, INPUT_ANALOG);
-    digitalWrite(LED_PIN, 1);
+    digitalWrite(BOARD_LED_PIN, 1);
     pinMode(VGA_R, OUTPUT);
     pinMode(VGA_G, OUTPUT);
     pinMode(VGA_B, OUTPUT);
@@ -117,15 +116,15 @@ void setup() {
 
     timer_pause(TIMER4);
     timer_set_prescaler(TIMER4, 0);
-    timer_set_mode(TIMER4, 1, TIMER_OUTPUTCOMPARE);
-    timer_set_mode(TIMER4, 2, TIMER_OUTPUTCOMPARE);
-    timer_set_mode(TIMER4, 3, TIMER_OUTPUTCOMPARE);
-    timer_set_mode(TIMER4, 4, TIMER_OUTPUTCOMPARE);
+    timer_set_mode(TIMER4, 1, TIMER_OUTPUT_COMPARE);
+    timer_set_mode(TIMER4, 2, TIMER_OUTPUT_COMPARE);
+    timer_set_mode(TIMER4, 3, TIMER_OUTPUT_COMPARE);
+    timer_set_mode(TIMER4, 4, TIMER_OUTPUT_COMPARE);
     timer_set_reload(TIMER4, 2287);
-    timer_set_compare_value(TIMER4, 1, 200);
-    timer_set_compare_value(TIMER4, 2, 250);
-    timer_set_compare_value(TIMER4, 3, 2170);  // 2219 max...
-    timer_set_compare_value(TIMER4, 4, 1);
+    timer_set_compare(TIMER4, 1, 200);
+    timer_set_compare(TIMER4, 2, 250);
+    timer_set_compare(TIMER4, 3, 2170);  // 2219 max...
+    timer_set_compare(TIMER4, 4, 1);
     timer_attach_interrupt(TIMER4, 1, isr_porch);
     timer_attach_interrupt(TIMER4, 2, isr_start);
     timer_attach_interrupt(TIMER4, 3, isr_stop);
@@ -138,26 +137,26 @@ void setup() {
 uint16 y = 0;
 uint16 val = 0;
 bool v_active = true;
-const uint16 x_max = 60;        // empirically (and lazily) determined
+const uint16 x_max = 60;        // empirically (and sloppily) determined
 
 void isr_porch(void) {
     VGA_H_HIGH;
     y++;
     val = map(analogRead(ANALOG_PIN), 0, 4095, 0, x_max);
-    if(y >= 523) {
+    if (y >= 523) {
         y = 1;
         v_active = true;
         return;
     }
-    if(y >= 492) {
+    if (y >= 492) {
         VGA_V_HIGH;
         return;
     }
-    if(y >= 490) {
+    if (y >= 490) {
         VGA_V_LOW;
         return;
     }
-    if(y >= 479) {
+    if (y >= 479) {
         v_active = false;
         return;
     }
@@ -199,7 +198,7 @@ __attribute__((constructor)) void premain() {
 int main(void) {
     setup();
 
-    while (1) {
+    while (true) {
         loop();
     }
     return 0;

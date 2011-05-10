@@ -24,22 +24,31 @@
  * SOFTWARE.
  *****************************************************************************/
 
-#include "native_sram.h"
-#include "libmaple.h"
-#include "fsmc.h"
-#include "rcc.h"
+/**
+ * @file wirish_debug.h
+ * @brief High level debug port configuration
+ */
 
-#ifdef BOARD_maple_native
-
-void initNativeSRAM(void) {
-    fsmc_nor_psram_reg_map *regs = FSMC_NOR_PSRAM1_BASE;
-
-    fsmc_sram_init_gpios();
-    rcc_clk_enable(RCC_FSMC);
-
-    regs->BCR = FSMC_BCR_WREN | FSMC_BCR_MWID_16BITS | FSMC_BCR_MBKEN;
-    fsmc_nor_psram_set_addset(regs, 0);
-    fsmc_nor_psram_set_datast(regs, 3);
+/**
+ * @brief Disable the JTAG and Serial Wire (SW) debug ports.
+ *
+ * You can call this function in order to use the JTAG and SW debug
+ * pins as ordinary GPIOs.
+ *
+ * @see enableDebugPorts()
+ */
+static inline void disableDebugPorts(void) {
+    afio_cfg_debug_ports(AFIO_DEBUG_NONE);
 }
 
-#endif
+/**
+ * @brief Enable the JTAG and Serial Wire (SW) debug ports.
+ *
+ * After you call this function, the JTAG and SW debug pins will no
+ * longer be usable as GPIOs.
+ *
+ * @see disableDebugPorts()
+ */
+static inline void enableDebugPorts(void) {
+    afio_cfg_debug_ports(AFIO_DEBUG_FULL_SWJ);
+}

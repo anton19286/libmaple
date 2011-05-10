@@ -3,27 +3,31 @@
  *
  * Copyright (c) 2010 Perry Hung.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *****************************************************************************/
 
 /**
  * @file usart.h
+ * @author Marti Bolivar <mbolivar@leaflabs.com>,
+ *         Perry Hung <perry@leaflabs.com>
  * @brief USART definitions and prototypes
  */
 
@@ -249,20 +253,12 @@ extern usart_dev *UART4;
 extern usart_dev *UART5;
 #endif
 
-#ifdef STM32_MEDIUM_DENSITY
-#define NR_USARTS 3
-#elif defined(STM32_HIGH_DENSITY)
-#define NR_USARTS 5
-#else
-#warn "Only medium and high density devices are currently supported"
-#endif
-
 void usart_init(usart_dev *dev);
 void usart_set_baud_rate(usart_dev *dev, uint32 clock_speed, uint32 baud);
 void usart_enable(usart_dev *dev);
 void usart_disable(usart_dev *dev);
 void usart_foreach(void (*fn)(usart_dev *dev));
-void usart_putstr(usart_dev *dev, const char*);
+uint32 usart_tx(usart_dev *dev, const uint8 *buf, uint32 len);
 void usart_putudec(usart_dev *dev, uint32 val);
 
 /**
@@ -274,16 +270,32 @@ static inline void usart_disable_all(void) {
 
 /**
  * @brief Transmit one character on a serial port.
+ *
+ * This function blocks until the character has been successfully
+ * transmitted.
+ *
  * @param dev Serial port to send on.
  * @param byte Byte to transmit.
  */
 static inline void usart_putc(usart_dev* dev, uint8 byte) {
-    usart_reg_map *regs = dev->regs;
-
-    while ((regs->SR & USART_SR_TXE) == 0)
+    uint8 buf[] = {byte};
+    while (!usart_tx(dev, buf, 1))
         ;
+}
 
-    regs->DR = byte;
+/**
+ * @brief Transmit a character string on a serial port.
+ *
+ * This function blocks until str is completely transmitted.
+ *
+ * @param dev Serial port to send on
+ * @param str String to send
+ */
+static inline void usart_putstr(usart_dev *dev, const char* str) {
+    uint32 i = 0;
+    while (str[i] != '\0') {
+        usart_putc(dev, str[i++]);
+    }
 }
 
 /**

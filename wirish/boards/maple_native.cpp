@@ -31,12 +31,20 @@
  */
 
 #include "maple_native.h"
-#include "native_sram.h"
+
+#include "fsmc.h"
+#include "gpio.h"
+#include "rcc.h"
+#include "timer.h"
+
+#include "wirish_types.h"
 
 #ifdef BOARD_maple_native
 
+void initSRAMChip(void);
+
 void boardInit(void) {
-    initNativeSRAM();
+    initSRAMChip();
 }
 
 extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
@@ -44,7 +52,7 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     /* Top header */
 
     {GPIOB,   NULL, NULL, 10, 0, ADCx}, /* D0/PB10 */
-    {GPIOB,   NULL, NULL,  2, 0, ADCx}, /* D1/PB2 */
+    {GPIOB,   NULL, NULL, 11, 0, ADCx}, /* D1/PB11 */
     {GPIOB,   NULL, NULL, 12, 0, ADCx}, /* D2/PB12 */
     {GPIOB,   NULL, NULL, 13, 0, ADCx}, /* D3/PB13 */
     {GPIOB,   NULL, NULL, 14, 0, ADCx}, /* D4/PB14 */
@@ -72,7 +80,8 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOB, TIMER4, NULL,  9, 4, ADCx}, /* D26/PB9 */
 
     /* Bottom header */
-    /* Note: D{49, 50, 51} are also TIMER2_CH{2, 3, 4}, respectively. */
+    /* Note: D{48, 49, 50, 51} are also TIMER2_CH{1, 2, 3, 4}, respectively. */
+    /* TODO remap timer 2 in boardInit(); make the appropriate changes here */
 
     {GPIOD,   NULL, NULL,  2, 0, ADCx}, /* D27/PD2 */
     {GPIOD,   NULL, NULL,  3, 0, ADCx}, /* D28/PD3 */
@@ -87,12 +96,12 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOB,   NULL, NULL,  5, 0, ADCx}, /* D37/PB5 */
     {GPIOB, TIMER4, NULL,  6, 1, ADCx}, /* D38/PB6 */
     {GPIOB, TIMER4, NULL,  7, 2, ADCx}, /* D39/PB7 */
-    {GPIOF,   NULL, ADC3,  6, 0,    4}, /* D40/PF6 */
-    {GPIOF,   NULL, ADC3,  7, 0,    5}, /* D41/PF7 */
-    {GPIOF,   NULL, ADC3,  8, 0,    6}, /* D42/PF8 */
-    {GPIOF,   NULL, ADC3,  9, 0,    7}, /* D43/PF9 */
-    {GPIOF,   NULL, ADC3, 10, 0,    8}, /* D44/PF10 */
-    {GPIOF,   NULL, NULL, 11, 0, ADCx}, /* D45/PF11 */
+    {GPIOF,   NULL, NULL, 11, 0, ADCx}, /* D40/PF11 */
+    {GPIOF,   NULL, ADC3,  6, 0,    4}, /* D41/PF6 */
+    {GPIOF,   NULL, ADC3,  7, 0,    5}, /* D42/PF7 */
+    {GPIOF,   NULL, ADC3,  8, 0,    6}, /* D43/PF8 */
+    {GPIOF,   NULL, ADC3,  9, 0,    7}, /* D44/PF9 */
+    {GPIOF,   NULL, ADC3, 10, 0,    8}, /* D45/PF10 */
     {GPIOB, TIMER3, ADC1,  1, 4,    9}, /* D46/PB1 */
     {GPIOB, TIMER3, ADC1,  0, 3,    8}, /* D47/PB0 */
     {GPIOA, TIMER5, ADC1,  0, 1,    0}, /* D48/PA0 */
@@ -150,21 +159,41 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOG,   NULL, NULL,  4, 0, ADCx}, /* D97/PG4 */
     {GPIOD,   NULL, NULL,  9, 0, ADCx}, /* D98/PD9 */
     {GPIOG,   NULL, NULL,  5, 0, ADCx}, /* D99/PG5 */
-    {GPIOD,   NULL, NULL, 10, 0, ADCx}  /* D100/PD10 */
+    {GPIOD,   NULL, NULL, 10, 0, ADCx}, /* D100/PD10 */
+
+    /* JTAG header */
+
+    {GPIOA,   NULL, NULL, 13, 0, ADCx}, /* D101/PA13 */
+    {GPIOA,   NULL, NULL, 14, 0, ADCx}, /* D102/PA14 */
+    {GPIOA,   NULL, NULL, 15, 0, ADCx}, /* D103/PA15 */
+    {GPIOB,   NULL, NULL,  3, 0, ADCx}, /* D104/PB3  */
+    {GPIOB,   NULL, NULL,  4, 0, ADCx}  /* D105/PB4  */
 };
 
 extern const uint8 boardPWMPins[BOARD_NR_PWM_PINS] __FLASH__ = {
-    13, 14, 15, 16, 23, 24, 25, 26, 38, 39, 46, 47, 48, 49, 50, 51, 54, 54
+    13, 14, 15, 16, 23, 24, 25, 26, 38, 39, 46, 47, 48, 49, 50, 51, 54, 55
 };
 
 extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] __FLASH__ = {
-    7, 8, 9, 10, 11, 12, 40, 41, 42, 43, 44, 46, 47, 48, 49, 50, 51, 52, 53,
+    7, 8, 9, 10, 11, 12, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53,
     54, 55
 };
 
-/* FIXME! see comment by BOARD_NR_USED_PINS in maple_native.h */
+/* FIXME [0.0.10] see comment by BOARD_NR_USED_PINS in maple_native.h */
 extern const uint8 boardUsedPins[BOARD_NR_USED_PINS] __FLASH__ = {
-    BOARD_LED_PIN, BOARD_BUTTON_PIN
+    BOARD_LED_PIN, BOARD_BUTTON_PIN, BOARD_JTMS_SWDIO_PIN,
+    BOARD_JTCK_SWCLK_PIN, BOARD_JTDI_PIN, BOARD_JTDO_PIN, BOARD_NJTRST_PIN
 };
+
+void initSRAMChip(void) {
+    fsmc_nor_psram_reg_map *regs = FSMC_NOR_PSRAM1_BASE;
+
+    fsmc_sram_init_gpios();
+    rcc_clk_enable(RCC_FSMC);
+
+    regs->BCR = FSMC_BCR_WREN | FSMC_BCR_MWID_16BITS | FSMC_BCR_MBKEN;
+    fsmc_nor_psram_set_addset(regs, 0);
+    fsmc_nor_psram_set_datast(regs, 3);
+}
 
 #endif

@@ -39,10 +39,12 @@
 #include "bits.h"
 #include "pwm.h"
 #include "ext_interrupts.h"
+#include "wirish_debug.h"
 #include "wirish_math.h"
 #include "wirish_time.h"
 #include "HardwareSPI.h"
 #include "HardwareSerial.h"
+#include "HardwareTimer.h"
 #include "usb_serial.h"
 
 /* Arduino wiring macros and bit defines  */

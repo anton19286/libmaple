@@ -12,36 +12,25 @@ The latest version of this repository can be found here:
 
     http://github.com/leaflabs/libmaple
 
-Instructions to Compile for ARM Targets
+General information
 ------------------------------------------------------------------------------
 
-A HOWTO is available in the "Unix Toolchain Quickstart" guide at:
+A HOWTO on setting up this library for use in a Unix environment is
+available in our online HTML documentation:
 
     http://leaflabs.com/docs/unix-toolchain.html
 
-HTML documentation for this repository is automatically generated from
-the source code and the files under the top-level /docs/ directory.
-It is available online at:
+The HTML docs for this repository are automatically generated from the
+source code and the files under the top-level /docs/ directory.  For
+more information, see /docs/README.
 
-    http://leaflabs.com/docs/
+Our bugtracker is available at:
 
-(For more information on how this documentation is generated, see
-/docs/README).
+    http://code.google.com/p/leaflabs/issues/list
 
-Instructions to Create a Library
-------------------------------------------------------------------------------
+For changes that block official releases, see our wiki:
 
-TODO: fold this section into the Unix Toolchain Quickstart.
-
-If you have a complicated project with its own Makefile and multiple
-source files, or you're using an IDE that creates its own Makefile,
-you'll probably want to load libmaple from an archive (a build-time
-library, not a DLL).
-
-To create an archive, use the "make library" target, and install
-build/libmaple.a and the appropriate headers in your project's
-directory. At a minimum, the header set will include libmaple.h,
-util.h, and libmaple_types.h.
+    http://wiki.leaflabs.com/index.php?title=Blocking_Changes
 
 Repository Layout
 ------------------------------------------------------------------------------
@@ -93,12 +82,9 @@ Repository Layout
 
 /notes/
 
-    Unstructured text notes that may be useful. The 45-maple.rules
-    udev file can be placed in /etc/udev/rules.d/ on compatible Linux
-    machines to allow non-root access to the Maple USB device for
-    uploading.
+    Unstructured text notes that may be useful.
 
-/README/
+/README
 
     This file.
 
@@ -106,19 +92,12 @@ Repository Layout
 
     Support files and scripts for various purposes.
 
-    codeblocks/       [OBSOLETE] Config files for the Code::Blocks IDE.
     gdb/              GDB scripts.
     ld/               Linker scripts.
     make/             Additional scripts used by the top-level Makefile.
     openocd/          OpenOCD scripts for JTAG debugging.
     scripts/          Miscellany.
     stm32loader.py    Script for uploading via the built-in USART bootloader.
-
-TODO
-
-    Various undone tasks.  Also see our bugtracker at
-
-        http://code.google.com/p/leaflabs/issues/list
 
 /wirish/
 

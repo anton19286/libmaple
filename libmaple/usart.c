@@ -3,27 +3,31 @@
  *
  * Copyright (c) 2010 Perry Hung.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
+ * Permission is hereby granted, free of charge, to any person
+ * obtaining a copy of this software and associated documentation
+ * files (the "Software"), to deal in the Software without
+ * restriction, including without limitation the rights to use, copy,
+ * modify, merge, publish, distribute, sublicense, and/or sell copies
+ * of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
  *****************************************************************************/
 
 /**
  * @file usart.c
+ * @author Marti Bolivar <mbolivar@leaflabs.com,
+ *         Perry Hung <perry@leaflabs.com>
  * @brief USART control routines
  */
 
@@ -156,7 +160,7 @@ void usart_disable(usart_dev *dev) {
  *  @brief Call a function on each USART.
  *  @param fn Function to call.
  */
-void usart_foreach(void (*fn)(usart_dev *dev)) {
+void usart_foreach(void (*fn)(usart_dev*)) {
     fn(USART1);
     fn(USART2);
     fn(USART3);
@@ -167,20 +171,27 @@ void usart_foreach(void (*fn)(usart_dev *dev)) {
 }
 
 /**
- * @brief Print a null-terminated string to the specified serial port.
- * @param dev Serial port to send the string on
- * @param str String to send
+ * @brief Nonblocking USART transmit
+ * @param dev Serial port to transmit over
+ * @param buf Buffer to transmit
+ * @param len Maximum number of bytes to transmit
+ * @return Number of bytes transmitted
  */
-void usart_putstr(usart_dev *dev, const char* str) {
-    char ch;
-
-    while ((ch = *(str++)) != '\0') {
-        usart_putc(dev, ch);
+uint32 usart_tx(usart_dev *dev, const uint8 *buf, uint32 len) {
+    usart_reg_map *regs = dev->regs;
+    uint32 txed = 0;
+    while ((regs->SR & USART_SR_TXE) && (txed < len)) {
+        regs->DR = buf[txed++];
     }
+    return txed;
 }
 
 /**
- * @brief Print an unsigned integer to the specified serial port.
+ * @brief Transmit an unsigned integer to the specified serial port in
+ *        decimal format.
+ *
+ * This function blocks until the integer's digits have been
+ * completely transmitted.
  *
  * @param dev Serial port to send on
  * @param val Number to print
@@ -205,7 +216,8 @@ void usart_putudec(usart_dev *dev, uint32 val) {
 
 static inline void usart_irq(usart_dev *dev) {
 #ifdef USART_SAFE_INSERT
-    /* Ignore new bytes if the user defines USART_SAFE_INSERT. */
+    /* If the buffer is full and the user defines USART_SAFE_INSERT,
+     * ignore new bytes. */
     rb_safe_insert(dev->rb, (uint8)dev->regs->DR);
 #else
     /* By default, push bytes around in the ring buffer. */

@@ -23,7 +23,7 @@
 #ifndef _PRINT_H_
 #define _PRINT_H_
 
-#include <libmaple_types.h>
+#include "libmaple_types.h"
 
 enum {
     BYTE = 0,
@@ -35,9 +35,9 @@ enum {
 
 class Print {
 public:
-    virtual void write(uint8) = 0;
+    virtual void write(uint8 ch) = 0;
     virtual void write(const char *str);
-    virtual void write(void*, uint32);
+    virtual void write(const void *buf, uint32 len);
     void print(char);
     void print(const char[]);
     void print(uint8);

@@ -24,14 +24,15 @@ cppSRCS_$(d) := wirish_math.cpp		 \
                 boards/discovery.cpp	 \
                 comm/HardwareSerial.cpp	 \
                 comm/HardwareSPI.cpp	 \
+		HardwareTimer.cpp	 \
+                usb_serial.cpp		 \
                 cxxabi-compat.cpp	 \
 		wirish_shift.cpp	 \
 		wirish_analog.cpp	 \
 		wirish_time.cpp		 \
 		pwm.cpp 		 \
 		ext_interrupts.cpp	 \
-		wirish_digital.cpp	 \
-		native_sram.cpp
+		wirish_digital.cpp
 
 ifneq ($(BOARD), discovery)
 cppSRCS_$(d) += usb_serial.cpp        

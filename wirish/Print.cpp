@@ -21,7 +21,8 @@
  * Modified 12 April 2011 by Marti Bolivar <mbolivar@leaflabs.com>
  */
 
-#include <math.h>
+#include "Print.h"
+
 #include <limits.h>
 
 #ifndef LLONG_MAX
@@ -39,8 +40,7 @@
 #define LLONG_MAX 9223372036854775807LL
 #endif
 
-#include "wirish.h"
-#include "Print.h"
+#include "wirish_math.h"
 
 /*
  * Public methods
@@ -52,7 +52,7 @@ void Print::write(const char *str) {
     }
 }
 
-void Print::write(void *buffer, uint32 size) {
+void Print::write(const void *buffer, uint32 size) {
     uint8 *ch = (uint8*)buffer;
     while (size--) {
         write(*ch++);
@@ -64,7 +64,7 @@ void Print::print(uint8 b) {
 }
 
 void Print::print(char c) {
-    print((byte)c);
+    print((uint8)c);
 }
 
 void Print::print(const char str[]) {

@@ -32,11 +32,6 @@
  * See maple.h for more information on these definitions.
  */
 
-#include "gpio.h"
-#include "timer.h"
-
-#include "wirish_types.h"
-
 #ifndef _BOARD_MAPLE_NATIVE_H_
 #define _BOARD_MAPLE_NATIVE_H_
 
@@ -58,12 +53,33 @@
 #define BOARD_UART5_TX_PIN      21
 #define BOARD_UART5_RX_PIN      29
 
-#define BOARD_NR_GPIO_PINS      101
+#define BOARD_NR_SPI            3
+#define BOARD_SPI1_NSS_PIN      52
+#define BOARD_SPI1_MOSI_PIN     55
+#define BOARD_SPI1_MISO_PIN     54
+#define BOARD_SPI1_SCK_PIN      53
+#define BOARD_SPI2_NSS_PIN      2
+#define BOARD_SPI2_MOSI_PIN     5
+#define BOARD_SPI2_MISO_PIN     4
+#define BOARD_SPI2_SCK_PIN      3
+#define BOARD_SPI3_NSS_PIN      103
+#define BOARD_SPI3_MOSI_PIN     37
+#define BOARD_SPI3_MISO_PIN     105
+#define BOARD_SPI3_SCK_PIN      104
+
+#define BOARD_NR_GPIO_PINS      106
 #define BOARD_NR_PWM_PINS       18
 #define BOARD_NR_ADC_PINS       21
-/* FIXME! this isn't true at all; almost all of the triple header pins
- * are used by the FSMC by default.  Fix this (and the corresponding
- * boardUsedPins definition in maple_native.cpp) by QA time. */
-#define BOARD_NR_USED_PINS      2
+/* FIXME [0.0.10] this isn't true at all; almost all of the triple
+ * header pins are used by the FSMC by default.  Fix this (and the
+ * corresponding boardUsedPins definition in maple_native.cpp) by QA
+ * time. */
+#define BOARD_NR_USED_PINS      7
+
+#define BOARD_JTMS_SWDIO_PIN    101
+#define BOARD_JTCK_SWCLK_PIN    102
+#define BOARD_JTDI_PIN          103
+#define BOARD_JTDO_PIN          104
+#define BOARD_NJTRST_PIN        105
 
 #endif

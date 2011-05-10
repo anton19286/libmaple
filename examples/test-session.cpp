@@ -27,8 +27,10 @@ void cmd_serial1_echo(void);
 void cmd_gpio_monitoring(void);
 void cmd_sequential_adc_reads(void);
 void cmd_gpio_qa(void);
-void cmd_sequential_gpio_writes(void);
+void cmd_sequential_gpio_toggling(void);
 void cmd_gpio_toggling(void);
+void cmd_sequential_debug_gpio_toggling(void);
+void cmd_debug_gpio_toggling(void);
 void cmd_but_test(void);
 void cmd_sequential_pwm_test(void);
 void cmd_servo_sweep(void);
@@ -148,11 +150,19 @@ void loop () {
             break;
 
         case 'g':
-            cmd_sequential_gpio_writes();
+            cmd_sequential_gpio_toggling();
             break;
 
         case 'G':
             cmd_gpio_toggling();
+            break;
+
+        case 'j':
+            cmd_sequential_debug_gpio_toggling();
+            break;
+
+        case 'J':
+            cmd_debug_gpio_toggling();
             break;
 
         case 'B':
@@ -266,6 +276,8 @@ void cmd_print_help(void) {
     SerialUSB.println("\tU: dump data as fast as possible on USB");
     SerialUSB.println("\tg: toggle GPIOs sequentially");
     SerialUSB.println("\tG: toggle GPIOs at the same time");
+    SerialUSB.println("\tj: toggle debug port GPIOs sequentially");
+    SerialUSB.println("\tJ: toggle debug port GPIOs simultaneously");
     SerialUSB.println("\tB: test the built-in button");
     SerialUSB.println("\tf: toggle pin 4 as fast as possible in bursts");
     SerialUSB.println("\tr: monitor and print GPIO status changes");
@@ -356,19 +368,18 @@ void cmd_serial1_echo(void) {
                       "early.");
     while (!SerialUSB.available())
         ;
-    SerialUSB.read();
 
+    if (SerialUSB.read() == ESC) return;
     SerialUSB.println("Testing 115200 baud on USART1.");
     serial_echo_test(&Serial1, 115200);
-    if (SerialUSB.read() == ESC) return;
 
+    if (SerialUSB.read() == ESC) return;
     SerialUSB.println("Testing 57600 baud on USART1.");
     serial_echo_test(&Serial1, 57600);
-    if (SerialUSB.read() == ESC) return;
 
+    if (SerialUSB.read() == ESC) return;
     SerialUSB.println("Testing 9600 baud on USART1.");
     serial_echo_test(&Serial1, 9600);
-    if (SerialUSB.read() == ESC) return;
 }
 
 void cmd_gpio_monitoring(void) {
@@ -412,7 +423,7 @@ void cmd_sequential_adc_reads(void) {
     SerialUSB.println("Press any key for next port, or ESC to stop.");
 
     for (uint32 i = 0; i < BOARD_NR_ADC_PINS; i++) {
-        if (boardUsesPin(i))
+        if (boardUsesPin(boardADCPins[i]))
             continue;
 
         SerialUSB.print("Reading pin ");
@@ -535,7 +546,7 @@ void cmd_gpio_qa(void) {
     }
 }
 
-void cmd_sequential_gpio_writes(void) {
+void cmd_sequential_gpio_toggling(void) {
     SerialUSB.println("Sequentially toggling all unused pins. "
                       "Press any key for next pin, ESC to stop.");
 
@@ -580,6 +591,67 @@ void cmd_gpio_toggling(void) {
         if (boardUsesPin(i))
             continue;
         digitalWrite(i, LOW);
+    }
+}
+
+uint8 debugGPIOPins[] = {BOARD_JTMS_SWDIO_PIN,
+                         BOARD_JTCK_SWCLK_PIN,
+                         BOARD_JTDI_PIN,
+                         BOARD_JTDO_PIN,
+                         BOARD_NJTRST_PIN};
+
+#define N_DEBUG_PINS 5
+
+void cmd_sequential_debug_gpio_toggling(void) {
+    SerialUSB.println("Toggling all debug (JTAG/SWD) pins sequentially. "
+                      "This will permanently disable debug port "
+                      "functionality.");
+    disableDebugPorts();
+
+    for (int i = 0; i < N_DEBUG_PINS; i++) {
+        pinMode(debugGPIOPins[i], OUTPUT);
+    }
+
+    for (int i = 0; i < N_DEBUG_PINS; i++) {
+        int pin = debugGPIOPins[i];
+        SerialUSB.print("Toggling pin ");
+        SerialUSB.print(pin, DEC);
+        SerialUSB.println("...");
+
+        pinMode(pin, OUTPUT);
+        do {
+            togglePin(pin);
+        } while (!SerialUSB.available());
+
+        digitalWrite(pin, LOW);
+        if (SerialUSB.read() == ESC)
+            break;
+    }
+
+    for (int i = 0; i < N_DEBUG_PINS; i++) {
+        digitalWrite(debugGPIOPins[i], 0);
+    }
+}
+
+void cmd_debug_gpio_toggling(void) {
+    SerialUSB.println("Toggling debug GPIO simultaneously. "
+                      "This will permanently disable JTAG and Serial Wire "
+                      "debug port functionality. "
+                      "Press any key to stop.");
+    disableDebugPorts();
+
+    for (uint32 i = 0; i < N_DEBUG_PINS; i++) {
+        pinMode(debugGPIOPins[i], OUTPUT);
+    }
+
+    while (!SerialUSB.available()) {
+        for (uint32 i = 0; i < N_DEBUG_PINS; i++) {
+            togglePin(debugGPIOPins[i]);
+        }
+    }
+
+    for (uint32 i = 0; i < N_DEBUG_PINS; i++) {
+        digitalWrite(debugGPIOPins[i], LOW);
     }
 }
 
@@ -783,7 +855,7 @@ void enable_usarts(void) {
     Serial1.begin(BAUD);
     Serial2.begin(BAUD);
     Serial3.begin(BAUD);
-#ifdef STM32_HIGH_DENSITY
+#if defined(STM32_HIGH_DENSITY) && !defined(BOARD_maple_RET6)
     Serial4.begin(BAUD);
     Serial5.begin(BAUD);
 #endif
@@ -793,7 +865,7 @@ void disable_usarts(void) {
     Serial1.end();
     Serial2.end();
     Serial3.end();
-#ifdef STM32_HIGH_DENSITY
+#if defined(STM32_HIGH_DENSITY) && !defined(BOARD_maple_RET6)
     Serial4.end();
     Serial5.end();
 #endif
