@@ -44,6 +44,7 @@ ifeq ($(BOARD), discovery)
    ERROR_LED_PORT := GPIOC
    ERROR_LED_PIN  := 9
    DENSITY := STM32_MEDIUM_DENSITY
+   ST-LINK_CLI := "c:/Program Files/STMicroelectronics/STM32 ST-Link Utility/ST-Link Utility/ST-LINK_CLI.exe"
 endif
 
 # Some target specific things
@@ -127,9 +128,13 @@ include build-targets.mk
 UPLOAD_ram   := $(SUPPORT_PATH)/scripts/reset.py && \
                 sleep 1                  && \
                 $(DFU) -a0 -d $(VENDOR_ID):$(PRODUCT_ID) -D $(BUILD_PATH)/$(BOARD).bin -R
+ifeq ($(BOARD), discovery)
+UPLOAD_flash := $(ST-LINK_CLI) -c SWD -P "$(BUILD_PATH)/$(BOARD).bin" 0x08000000 -Run
+else
 UPLOAD_flash := $(SUPPORT_PATH)/scripts/reset.py && \
                 sleep 1                  && \
                 $(DFU) -a1 -d $(VENDOR_ID):$(PRODUCT_ID) -D $(BUILD_PATH)/$(BOARD).bin -R
+endif
 UPLOAD_jtag  := $(OPENOCD) -f support/openocd/flash.cfg
 
 # conditionally upload to whatever the last build was
