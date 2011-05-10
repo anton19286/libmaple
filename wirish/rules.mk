@@ -25,7 +25,6 @@ cppSRCS_$(d) := wirish_math.cpp		 \
                 comm/HardwareSerial.cpp	 \
                 comm/HardwareSPI.cpp	 \
 		HardwareTimer.cpp	 \
-                usb_serial.cpp		 \
                 cxxabi-compat.cpp	 \
 		wirish_shift.cpp	 \
 		wirish_analog.cpp	 \
