@@ -18,7 +18,7 @@ This code is released with no strings attached.
 #include "i2c.h"
 #include "exti.h"
 
-//#define PRINT_TELEMETRY
+#define PRINT_TELEMETRY
 
 // Declare the interrupt handler routine
 void measurePulseWidthISR();
@@ -55,7 +55,7 @@ volatile static tPinTimingData pinData[LASTCHANNEL];
  // I/O pin assignments
 
 // 5V tolerant pins from different EXTI channels used for ROLL, PITCH, YAW, THROTTLE 
-static byte receiverPin[4] = {PA8, PA9, PC6, PB14}; 
+static byte receiverPin[4] = {PA8, PA9, PC6, PD2}; 
 
 // ESC PWM pins
 const int Esc1Pin         = PA6; // 12 Timer3,1 Front motor, ESC #1
@@ -148,7 +148,7 @@ int startTag=0xDEAD;
 
 
     ReadWii(buffer);
-//  delay(44);
+//  delay(4);
     // General idea for mixer adapted from KKmulticopter derivatives
 
     // Read the stick and gyro inputs...
@@ -359,12 +359,14 @@ int g_winH             = 600;   // Window Height
 boolean g_dumpToFile   = false;  // Dumps data to c:\\output.txt in a comma seperated format (easy to import into Excel)
 boolean g_enableFilter = false;  // Enables simple filter to help smooth out data.
 
-cDataArray pitch0    = new cDataArray(200);
-cDataArray yaw0    = new cDataArray(200);
-cDataArray roll0    = new cDataArray(200);
-cDataArray pitch      = new cDataArray(200);
-cDataArray yaw     = new cDataArray(200);
-cDataArray roll     = new cDataArray(200);
+cDataArray pitch_g    = new cDataArray(200);
+cDataArray yaw_g    = new cDataArray(200);
+cDataArray roll_g    = new cDataArray(200);
+cDataArray pitch_t      = new cDataArray(200);
+cDataArray yaw_t     = new cDataArray(200);
+cDataArray roll_t     = new cDataArray(200);
+cDataArray throttle_t     = new cDataArray(200);
+
 cGraph g_graph         = new cGraph(10, 190, 800, 400);
 Serial g_serial;
 PFont  g_font;
@@ -374,8 +376,8 @@ void setup()
   size(g_winW, g_winH, P2D);
 
   println(Serial.list());
-  g_serial = new Serial(this, "COM5", 115200, 'N', 8, 1.0);  //enter COM port of
-  g_font = loadFont("ArialMT-20.vlw");                       //of arduino here
+  g_serial = new Serial(this, "COM9", 115200, 'N', 8, 1.0);  //enter COM port of
+  g_font = loadFont("AndaleMono-24.vlw");                       //of arduino here
   textFont(g_font, 20);
   
   // This draws the graph key info
@@ -383,16 +385,18 @@ void setup()
   stroke(255, 0, 0);     line(20, 440, 35, 440);
   stroke(0, 255, 0);     line(20, 460, 35, 460);
   stroke(0, 0, 255);     line(20, 480, 35, 480);
-  stroke(255, 0, 0);     line(20, 500, 35, 500);
-  stroke(0, 255, 0);     line(20, 520, 35, 520);
-  stroke(0, 0, 255);     line(20, 540, 35, 540);
+  stroke(255, 255, 0);   line(20, 500, 35, 500);
+  stroke(0, 255, 255);   line(20, 520, 35, 520);
+  stroke(255, 0, 255);   line(20, 540, 35, 540);
+  stroke(0, 0, 0);       line(20, 560, 35, 560);
   fill(0, 0, 0);
-  text("pitch0", 40, 450);
-  text("yaw0", 40, 470);
-  text("roll0", 40, 490);
-  text("pitch", 40, 510);
-  text("yaw", 40, 530);
-  text("roll", 40, 550);
+  text("pitch_g", 40, 450);
+  text("yaw_g", 40, 470);
+  text("roll_g", 40, 490);
+  text("pitch_t", 40, 510);
+  text("yaw_t", 40, 530);
+  text("roll_t", 40, 550);
+  text("throttle_t", 40, 570);
   //text("current raw", 180, 430);
   //text("current deg/s", 320, 430);
   
@@ -418,17 +422,20 @@ void draw()
   
   strokeWeight(1.5);
   stroke(255, 0, 0);
-  g_graph.drawLine(pitch0, 0, 16384);
+  g_graph.drawLine(pitch_g, 0, 16384);
   stroke(0, 255, 0);
-  g_graph.drawLine(yaw0, 0, 16384);
+  g_graph.drawLine(yaw_g, 0, 16384);
   stroke(0, 0, 255);
-  g_graph.drawLine(roll0, 0, 16384);
-  stroke(255, 0, 0);
-  g_graph.drawLine(pitch, 0, 16384);
-  stroke(0, 255, 0);
-  g_graph.drawLine(yaw, 0, 16384);
-  stroke(0, 0, 255);
-  g_graph.drawLine(roll, 0, 16384);
+  g_graph.drawLine(roll_g, 0, 16384);
+  stroke(255, 255, 0);
+  g_graph.drawLine(pitch_t, 0, 16384);
+  stroke(0, 255, 255);
+  g_graph.drawLine(yaw_t, 0, 16384);
+  stroke(255, 0, 255);
+  g_graph.drawLine(roll_t, 0, 16384);
+    stroke(0, 0, 0);
+  g_graph.drawLine(throttle_t, 0, 16384);
+
 }
 
 // This reads in one set of the data from the serial port
@@ -480,7 +487,7 @@ void processSerialData()
   // This reads in one set of data
   {
     byte[] inBuf = new byte[2];
-    int pitch0_cur, yaw0_cur, roll0_cur, pitch_cur, yaw_cur, roll_cur;
+    int pitch0_cur, yaw0_cur, roll0_cur, pitch_cur, yaw_cur, roll_cur, throttle_cur;
   
     g_serial.readBytes(inBuf);
     // Had to do some type conversion since Java doesn't support unsigned bytes
@@ -495,13 +502,16 @@ void processSerialData()
     yaw_cur  = ((int)(inBuf[1]&0xFF) << 8) + ((int)(inBuf[0]&0xFF) << 0);
     g_serial.readBytes(inBuf);
     roll_cur  = ((int)(inBuf[1]&0xFF) << 8) + ((int)(inBuf[0]&0xFF) << 0);
+    g_serial.readBytes(inBuf);
+    throttle_cur  = ((int)(inBuf[1]&0xFF) << 8) + ((int)(inBuf[0]&0xFF) << 0);
     
-    pitch0.addVal(pitch0_cur);
-    yaw0.addVal(yaw0_cur);
-    roll0.addVal(roll0_cur);
-    pitch.addVal(pitch_cur);
-    yaw.addVal(yaw_cur);
-    roll.addVal(roll_cur);
+    pitch_g.addVal(pitch0_cur);
+    yaw_g.addVal(yaw0_cur);
+    roll_g.addVal(roll0_cur);
+    pitch_t.addVal(pitch_cur+300);
+    yaw_t.addVal(yaw_cur+200);
+    roll_t.addVal(roll_cur+100);
+    throttle_t.addVal(throttle_cur);
 
     if (g_dumpToFile)  // Dump data to a file if needed
     {
@@ -521,10 +531,10 @@ void processSerialData()
       }
     }
 
-  
+    
 //    print(pitch0_cur);  print(" ");   print(yaw0_cur);   print(" ");    print(roll0_cur);     print(" ");
 //    print(pitch_cur);    print(" ");   print(yaw_cur);    print(" ");    println(roll_cur);
-  
+    
   }
 }
 
