@@ -40,7 +40,7 @@
 /* since we want the JTAG pins as GPIOs, disable JTAG debug support */
 /* SW-DP Enabled */
 void boardInit(void) {
-    afio_mapr_swj_config(AFIO_MAPR_SWJ_NO_JTAG_SW);
+    afio_cfg_debug_ports(AFIO_DEBUG_SW_ONLY);
 }
 
 extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
