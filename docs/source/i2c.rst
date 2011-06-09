@@ -4,23 +4,31 @@
 =====
 
 |i2c| is a crude and easy-to-hack serial protocol that requires only
-two wires/channels for communication between many devices.  Every
-message passed on the bus is between a *master* (who initiates the
-message) and a *slave* device.  Slaves are addressed using 7-bit
-addresses (up to 127 unique devices); 10-bit addressing is possible,
-but currently unimplemented.  Every message consists of an arbitrary
-combination of 8-bit reads and writes as requested by the master.
-Higher level functionality, such as reading a particular register
-value, is achieved by writing to set the memory location then reading
-to pull out the data.
+two wires/channels for communication between Maple and many other
+devices.
+
+.. contents:: Contents
+   :local:
+
+Overview
+--------
+
+Communication via |i2c| is broken up into messages.  Every message is
+between a *master* device, which initiates the message, and a *slave*
+device, which responds.
+
+Slaves are addressed using 7-bit addresses (up to 127 unique devices);
+10-bit addressing is also possible.  Every message consists of an
+arbitrary combination of 8-bit reads and writes as requested by the
+master.  Higher level functionality, such as reading a particular
+register value, is achieved by writing to set the memory location then
+reading to pull out the data.
 
 Note that the master/slave designation is on a message-by-message
 basis. Maple can act as both a master (messages initiated by user
 code) and slave device (responding to requests via configurable
-interrupt handlers) at the same time.
-
-.. contents:: Contents
-   :local:
+interrupt handlers) at the same time (though slave mode is currently
+unimplemented).
 
 Hardware/Circuit Design
 -----------------------
@@ -28,10 +36,10 @@ Hardware/Circuit Design
 .. FIXME [0.1.0] Link to board-specific values (BOARD_I2C1_SDA_PIN, etc.)
 
 Maple boards have two |i2c| ports.  Maples reliably communicate with
-up to a 400kHz clock speed; this doesn't translate into a 400kbps data
-rate except in extreme cases because of addressing and protocol
+up to a 400kHz clock speed; this doesn't translate into a 400kbps
+data rate except in extreme cases because of addressing and protocol
 overhead.  We have tested clock speeds up to a megahertz and have had
-mixed results; in theory it could be possible to achieve even higher
+mixed results; in theory, it could be possible to achieve even higher
 rates, but signal quality degrades rapidly, and the bus becomes
 unreliable.
 
