@@ -3,10 +3,11 @@
 LeafLabs Documentation Index
 ============================
 
-Welcome!  This is the Maple documentation index.  If you just bought a
-Maple board, you probably want to head to the :ref:`quickstart
-<maple-quickstart>`.  If you're having problems, check out the
-:ref:`troubleshooting <troubleshooting>` page.
+Welcome!  This is the Maple documentation index.
+
+If you just bought a Maple board, you probably want to head to the
+:ref:`quickstart <maple-quickstart>`.  If you're having problems,
+check out the :ref:`troubleshooting <troubleshooting>` page.
 
 Have fun!
 
@@ -53,6 +54,7 @@ Have fun!
    pwm
    spi
    timers
+   systick
    usb
    usart
 

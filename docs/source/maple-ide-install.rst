@@ -17,8 +17,8 @@ us directly`_\ !
 Download
 --------
 
-The current release of the Maple IDE is version 0.0.9.  Choose the
-correct version for your operating system:
+The current Maple IDE release is version 0.0.10.  Choose the correct
+download for your operating system:
 
 .. list-table::
    :widths: 15 30 50
@@ -28,16 +28,14 @@ correct version for your operating system:
      - Status
      - IDE Package
    * - Windows
-     - Tested on 32bit Windows XP
-     - `maple-ide-0.0.9-windowsxp32.zip <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.9-windowsxp32.zip>`_ (about 75mb)
+     - Tested on 32-bit Windows XP
+     - `maple-ide-0.0.10-windowsxp32.zip <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.10-windowsxp32.zip>`_ (about 75 MB)
    * - Linux
-     - Tested on Ubuntu 9.10 (64bit) and 10.04 (32bit)
-     - `maple-ide-0.0.9-linux32.tgz <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.9-linux32.tgz>`_ (about 30mb)
-
-       `maple-ide-0.0.9-linux64.tgz <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.9-linux64.tgz>`_ (about 30mb)
+     - Tested on Ubuntu 10.04 (32-bit)
+     - `maple-ide-0.0.10-linux32.tgz <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.10-linux32.tgz>`_ (about 30 MB)
    * - Mac OSX
-     - Tested on Snow Leopard 10.6 (64bit and 32bit)
-     - `maple-ide-0.0.9-macosx-10_6.dmg <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.9-macosx-10_6.dmg>`_ (about 40mb)
+     - Tested on Snow Leopard (10.6.7)
+     - `maple-ide-0.0.10-macosx-10_6.dmg <http://static.leaflabs.com/pub/leaflabs/maple-ide/maple-ide-0.0.10-macosx-10_6.dmg>`_ (about 40 MB)
 
 The package bundles together a compiler, an upload utility, a software
 library, and a simple GUI text editor. All this software is `free and
