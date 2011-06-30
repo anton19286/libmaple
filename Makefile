@@ -116,11 +116,14 @@ LIBMAPLE_MODULES += $(SRCROOT)/libraries/Servo
 LIBMAPLE_MODULES += $(SRCROOT)/libraries/LiquidCrystal
 LIBMAPLE_MODULES += $(SRCROOT)/libraries/Wire
 
+# Experimental libraries:
+LIBMAPLE_MODULES += $(SRCROOT)/libraries/FreeRTOS
+
 # call each module rules.mk
 $(foreach m,$(LIBMAPLE_MODULES),$(eval $(call LIBMAPLE_MODULE_template,$(m))))
 
 # Main target
-include build-targets.mk
+include $(SRCROOT)/build-targets.mk
 
 .PHONY: install sketch clean help debug cscope tags ctags ram flash jtag
 
@@ -198,3 +201,6 @@ flash:
 
 jtag:
 	@$(MAKE) MEMORY_TARGET=jtag --no-print-directory sketch
+
+doxygen:
+	doxygen $(SUPPORT_PATH)/doxygen/Doxyfile
