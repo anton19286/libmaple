@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := sketch
 
-# Valid BOARDs: maple, maple_native, ...
-BOARD ?= discovery
+# Valid BOARDs: maple, maple_native, discovery, ...
+BOARD ?= maple
 MEMORY_TARGET ?= flash
 
 # USB ID for DFU upload
@@ -131,9 +131,11 @@ include $(SRCROOT)/build-targets.mk
 UPLOAD_ram   := $(SUPPORT_PATH)/scripts/reset.py && \
                 sleep 1                  && \
                 $(DFU) -a0 -d $(VENDOR_ID):$(PRODUCT_ID) -D $(BUILD_PATH)/$(BOARD).bin -R
+# TODO: add linux support (http://code.google.com/p/arm-utilities)
 ifeq ($(BOARD), discovery)
 UPLOAD_flash := $(ST-LINK_CLI) -c SWD -P "$(BUILD_PATH)/$(BOARD).bin" 0x08000000 -Run
 else
+
 UPLOAD_flash := $(SUPPORT_PATH)/scripts/reset.py && \
                 sleep 1                  && \
                 $(DFU) -a1 -d $(VENDOR_ID):$(PRODUCT_ID) -D $(BUILD_PATH)/$(BOARD).bin -R
