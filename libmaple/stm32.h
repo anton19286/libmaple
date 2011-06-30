@@ -5,6 +5,11 @@
 #ifndef _STM32_H_
 #define _STM32_H_
 
+#ifdef MCU_STM32F100RB
+#define PCLK1   12000000U
+#define PCLK2   24000000U
+#endif
+
 #ifndef PCLK1
 #define PCLK1   36000000U
 #endif
