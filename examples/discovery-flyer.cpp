@@ -239,14 +239,14 @@ uint8 buf[2] = {0xFE, 0x04};
  msgs[0].flags = 0;
  msgs[0].length = 2;
  msgs[0].data = buf;
- i2c_master_xfer(I2C2, msgs, 1);
+ i2c_master_xfer(I2C2, msgs, 1, 0);
  delay(100);
  buf[0] = 0xF0; buf[1] = 0x55;
  msgs[0].addr = 0x53;
  msgs[0].flags = 0;
  msgs[0].length = 2;
  msgs[0].data = buf;
- // i2c_master_xfer(I2C2, msgs, 1);
+ // i2c_master_xfer(I2C2, msgs, 1, 0);
  delay(100);
 }
 
@@ -264,7 +264,7 @@ i2c_msg msgs[2];
  msgs[1].flags = I2C_MSG_READ;
  msgs[1].length = 6;
  msgs[1].data = buf;
- i2c_master_xfer(I2C2, msgs, 2);
+ i2c_master_xfer(I2C2, msgs, 2, 0);
 }
 
 void CalibrateGyros(){
