@@ -60,7 +60,7 @@ void init(void) {
     afio_init();
     setupADC();
     setupTimers();
-// STM32F100RB has no USB 
+// STM32F100RB has no USB
 #ifndef BOARD_discovery
     setupUSB();
 #endif

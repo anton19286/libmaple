@@ -44,7 +44,8 @@ ifeq ($(BOARD), discovery)
    ERROR_LED_PORT := GPIOC
    ERROR_LED_PIN  := 9
    DENSITY := STM32_MEDIUM_DENSITY
-   ST-LINK_CLI := "c:/Program Files/STMicroelectronics/STM32 ST-Link Utility/ST-Link Utility/ST-LINK_CLI.exe"
+   ST-LINK_CLI := "ST-LINK_CLI.exe"
+#   STLINK_DOWNLOD := stlink-download
 endif
 
 # Some target specific things
@@ -131,9 +132,11 @@ include $(SRCROOT)/build-targets.mk
 UPLOAD_ram   := $(SUPPORT_PATH)/scripts/reset.py && \
                 sleep 1                  && \
                 $(DFU) -a0 -d $(VENDOR_ID):$(PRODUCT_ID) -D $(BUILD_PATH)/$(BOARD).bin -R
-# TODO: add linux support (http://code.google.com/p/arm-utilities)
+
 ifeq ($(BOARD), discovery)
 UPLOAD_flash := $(ST-LINK_CLI) -c SWD -P "$(BUILD_PATH)/$(BOARD).bin" 0x08000000 -Run
+# Linux util http://code.google.com/p/arm-utilities/
+# UPLOAD_flash := $(STLINK_DOWNLOD) program=$(BUILD_PATH)/$(BOARD).bin
 else
 
 UPLOAD_flash := $(SUPPORT_PATH)/scripts/reset.py && \
