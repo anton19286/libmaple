@@ -41,6 +41,8 @@
 #include "nvic.h"
 #include "gpio.h"
 #include "util.h"
+#include "stm32.h"
+
 
 #ifdef __cplusplus
 extern "C" {
