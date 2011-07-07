@@ -43,9 +43,6 @@
 /* A few of these values will seem strange given that it's a
  * high-density board. */
 
-#define CYCLES_PER_MICROSECOND  72
-#define SYSTICK_RELOAD_VAL      71999 /* takes a cycle to reload */
-
 #define BOARD_BUTTON_PIN        38
 #define BOARD_LED_PIN           13
 

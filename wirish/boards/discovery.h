@@ -36,11 +36,10 @@
 #ifndef _BOARD_DISCOVERY_H_
 #define _BOARD_DISCOVERY_H_
 
-#define CYCLES_PER_MICROSECOND  24
-#define SYSTICK_RELOAD_VAL      23999 /* takes a cycle to reload */
-
 #define BOARD_BUTTON_PIN        2   /* PA0 USER */
-#define BOARD_LED_PIN           37  /* blue led LD4 */
+#define BOARD_BLUE_LED_PIN      37  /* blue led LD4 */
+#define BOARD_GREEN_LED_PIN     38  /* green led LD4 */
+#define BOARD_LED_PIN           BOARD_BLUE_LED_PIN
 
 /* Number of USARTs/UARTs whose pins are broken out to headers */
 #define BOARD_NR_USARTS         3
@@ -79,7 +78,7 @@
 
 /* Number of pins already connected to external hardware.  For Maple,
  * these are just BOARD_LED_PIN and BOARD_BUTTON_PIN. */
-#define BOARD_NR_USED_PINS       2
+#define BOARD_NR_USED_PINS       3
 
 /* Save Maple pin order and define aliases */
 enum {

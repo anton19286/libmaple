@@ -149,9 +149,5 @@ bool boardUsesPin(uint8 pin);
 #error "Board type has not been selected correctly."
 #endif
 
-/* Set derived definitions */
-
-#define CLOCK_SPEED_MHZ                 CYCLES_PER_MICROSECOND
-#define CLOCK_SPEED_HZ                  (CLOCK_SPEED_MHZ * 1000000UL)
 
 #endif

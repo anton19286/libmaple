@@ -37,6 +37,7 @@
 
 #include "flash.h"
 #include "rcc.h"
+#include "stm32.h"
 #include "nvic.h"
 #include "systick.h"
 #include "gpio.h"
@@ -59,7 +60,8 @@ void init(void) {
     afio_init();
     setupADC();
     setupTimers();
-#ifndef MCU_STM32F100RB
+// STM32F100RB has no USB 
+#ifndef BOARD_discovery
     setupUSB();
 #endif
     boardInit();
@@ -90,14 +92,10 @@ static void setupFlash(void) {
  * comment above.
  */
 static void setupClocks() {
-#ifdef MCU_STM32F100RB
-    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL_3);
-#else
-    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL_9);
-#endif
-    rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV_1);
-    rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV_2);
-    rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV_1);
+    rcc_clk_init(RCC_CLKSRC_PLL, RCC_PLLSRC_HSE, RCC_PLLMUL);
+    rcc_set_prescaler(RCC_PRESCALER_AHB, RCC_AHB_SYSCLK_DIV);
+    rcc_set_prescaler(RCC_PRESCALER_APB1, RCC_APB1_HCLK_DIV);
+    rcc_set_prescaler(RCC_PRESCALER_APB2, RCC_APB2_HCLK_DIV);
 }
 
 static void setupNVIC() {

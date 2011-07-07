@@ -1,6 +1,6 @@
 /*
  * Linker script for STM32.
- * STM32F103RBT6 medium density chip linker script. Loads to ram.
+ * STM32F100RBT6 medium density chip linker script. Loads to ram.
  */
 
 /*

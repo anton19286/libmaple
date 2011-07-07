@@ -48,7 +48,6 @@
 #define RX5 BOARD_UART5_RX_PIN
 #endif
 
-// TODO Put these magic numbers into boards.h #defines
 HardwareSerial Serial1(USART1, TX1, RX1, PCLK2);
 HardwareSerial Serial2(USART2, TX2, RX2, PCLK1);
 HardwareSerial Serial3(USART3, TX3, RX3, PCLK1);
