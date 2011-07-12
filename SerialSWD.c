@@ -1502,38 +1502,36 @@ int main(int argc, char *argv[])
 					"expected value of %8.8x.\n", core_id, 0x1BA01477);
 	}
 
+	write_uint32(sl->scsi_cmd_blk + 2, 0xe000edf8);
+	write_uint16(sl->scsi_cmd_blk + 6, 17);
+	stlink_cmd(sl, STLinkDebugReadMem32bit, 0xe000edf8, 4);           // Read DCRDR
+	addr = read_uint32(sl->q_buf, 0);
+	if (sl->verbose)
+		fprintf(stderr,"DCRDR %8.8x is %8.8x\n",
+			0xe000edf8, addr);
 
 	while(1){
-		uint8_t *DCRDR = (void*)sl->q_buf;
-		write_uint32(sl->scsi_cmd_blk + 2, 0xe000edf8);
+		write_uint32(sl->scsi_cmd_blk + 2, addr);
 		write_uint16(sl->scsi_cmd_blk + 6, 17);
-		stlink_cmd(sl, STLinkDebugReadMem32bit, 0xe000edf8, 4); // Read DCRDR
-		if (sl->verbose)
-			fprintf(stderr,"DCRDR %8.8x is %2.2x %2.2x %2.2x %2.2x.\n",
-				0xe000edf8, DCRDR[0], DCRDR[1], DCRDR[2], DCRDR[3]);
-		
-			if (DCRDR[0]) {
-		       		addr = DCRDR[1] + (DCRDR[2]<<8) + (DCRDR[3]<<16);
-				addr += 0x20000000; 
-			       	n = DCRDR[0];
-				uint8_t *data = (void*)sl->q_buf;
-				write_uint32(sl->scsi_cmd_blk + 2, addr);
-				write_uint16(sl->scsi_cmd_blk + 6, 17);
-				stl_rd32_cmd(sl, addr, 4*(n/4+1));
-
-				if (sl->verbose) {
-					fprintf(stderr,"\naddr abs : %X", addr);
-					fprintf(stderr,"\nlen : %X\n", n);
-					fprintf(stderr,"\ndata : ");
-					for (i=0;i<n;i++) 
-						fprintf(stderr,"%X ",data[i]);
-					fprintf(stderr,"\n");
-				}
-			       	for (i=0;i<n;i++) 
-		           		printf("%c",data[i]);
-
-				sl_wr32(sl, 0xe000edf8, 0);    // Reading complete flag
+		stlink_cmd(sl, STLinkDebugReadMem32bit, addr, 4);         // Read SendLen
+                n = read_uint32(sl->q_buf, 0);                     
+		if(n) {
+			write_uint32(sl->scsi_cmd_blk + 2, addr+8);       
+			write_uint16(sl->scsi_cmd_blk + 6, 17);
+			stl_rd32_cmd(sl, addr+8, 4*(n/4+1));              // Read SendBuf
+			uint8_t *data = (void*)sl->q_buf;
+			if (sl->verbose) {
+				fprintf(stderr,"\naddr abs : %X", addr+8);
+				fprintf(stderr,"\nlen : %X\n", n);
+				fprintf(stderr,"\ndata : ");
+				for (i=0;i<n;i++) 
+					fprintf(stderr,"%X ",data[i]);
+				fprintf(stderr,"\n");
 			}
+	       		for (i=0;i<n;i++) 
+        	   		printf("%c",data[i]);
+			sl_wr32(sl, addr, 0);    // Reading complete flag
+		}
 	}
 	/* Commands tend to 'stick' in the stlink.  Flush them. */
 	stl_get_status(sl);
