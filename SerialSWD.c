@@ -1,4 +1,4 @@
-#define WINDOWS 1
+#define WINDOWS
 /* STLink download/debug interface for Linux. */
 /*
   This program interacts with the STMicro USB STLink programming/debug
@@ -177,7 +177,7 @@ struct stm_chip_params {			/* Unused/placeholder parameter table. */
  * http://en.wikipedia.org/wiki/SCSI_Request_Sense_Command
  * We should only need 18 bytes, but double just in case.
  */
-#define SENSE_BUF_LEN		36
+#define SENSE_BUF_LEN		24
 
 /* The maximum data transfer seems to be about 6KB, likely limited by
  * the RAM on the STLink 32F103 chip.  This is not a painful limit.  There
@@ -624,7 +624,7 @@ SCSI_PASS_THROUGH_DIRECT_WITH_BUFFER sptdwb;
     sptdwb.sptd.Lun = 0;
     sptdwb.sptd.CdbLength = sizeof(stl->scsi_cmd_blk);
     sptdwb.sptd.DataIn = sg_xfer_dir;
-    sptdwb.sptd.SenseInfoLength = 0;
+    sptdwb.sptd.SenseInfoLength = SENSE_BUF_LEN;
     sptdwb.sptd.DataTransferLength = stl->q_len;
     sptdwb.sptd.TimeOutValue = SG_TIMEOUT_MSEC/1000 + 1;
     sptdwb.sptd.DataBuffer = stl->q_buf;
@@ -643,7 +643,7 @@ SCSI_PASS_THROUGH_DIRECT_WITH_BUFFER sptdwb;
       IOCTL_SCSI_PASS_THROUGH_DIRECT,  // operation to perform
                             &sptdwb, length,     // input buffer
                             &sptdwb, length,     // output buffer
-                            &junk,                 // # bytes returned
+                            &junk,               // # bytes returned
                             (LPOVERLAPPED) NULL);  // synchronous I/O
 
 	if (stl->verbose) {
@@ -1438,6 +1438,35 @@ static void stm_show_CAN(struct stlink* sl, unsigned int can_num)
 	return;
 }
 
+#define SWD_TX_BUF_SIZE 64
+
+/** SWD device data structure */
+
+typedef struct swd_dev {
+    uint32_t head;         /* Index of the next item to remove */
+    uint32_t tail;         /* Index where the next item will get inserted */
+    uint32_t size;         /* Buffer capacity minus one */
+    uint8_t tx_buf[SWD_TX_BUF_SIZE];   /**< Actual TX buffer used by rb */
+} swd_dev;
+
+
+uint16_t rb_full_count(swd_dev *swd) {
+    swd_dev *arb = swd;
+    int32_t size = arb->tail - arb->head;
+    if (arb->tail < arb->head) {
+        size += arb->size + 1;
+    }
+    return (uint16_t)size;
+}
+
+uint16_t rb_remove_all(swd_dev *swd, uint8_t *buf) {
+    uint16_t i, n = rb_full_count(swd);
+    for(i=0;i<n;i++) { 
+        buf[i] = swd->tx_buf[swd->head];
+        swd->head = (swd->head == swd->size) ? 0 : swd->head + 1;
+    }
+    return n;	
+}
 
 int main(int argc, char *argv[])
 {
@@ -1507,21 +1536,21 @@ int main(int argc, char *argv[])
 	stlink_cmd(sl, STLinkDebugReadMem32bit, 0xe000edf8, 4);           // Read DCRDR
 	addr = read_uint32(sl->q_buf, 0);
 	if (sl->verbose)
-		fprintf(stderr,"DCRDR %8.8x is %8.8x\n",
-			0xe000edf8, addr);
+		fprintf(stderr,"DCRDR 0xe000edf8 is %8.8x\n", addr);
+
+uint8_t data[SWD_TX_BUF_SIZE];
 
 	while(1){
 		write_uint32(sl->scsi_cmd_blk + 2, addr);
-		write_uint16(sl->scsi_cmd_blk + 6, 17);
-		stlink_cmd(sl, STLinkDebugReadMem32bit, addr, 4);         // Read SendLen
-                n = read_uint32(sl->q_buf, 0);                     
+		write_uint16(sl->scsi_cmd_blk + 6, 13+SWD_TX_BUF_SIZE);
+		stlink_cmd(sl, STLinkDebugReadMem32bit, addr, 12+SWD_TX_BUF_SIZE);
+		swd_dev *swd = (void*)sl->q_buf;
+		n = rb_full_count(swd);
 		if(n) {
-			write_uint32(sl->scsi_cmd_blk + 2, addr+8);       
-			write_uint16(sl->scsi_cmd_blk + 6, 17);
-			stl_rd32_cmd(sl, addr+8, 4*(n/4+1));              // Read SendBuf
-			uint8_t *data = (void*)sl->q_buf;
+		rb_remove_all(swd, data);
+			sl_wr32(sl, addr, swd->head);
 			if (sl->verbose) {
-				fprintf(stderr,"\naddr abs : %X", addr+8);
+				fprintf(stderr,"\naddr abs : %X", addr);
 				fprintf(stderr,"\nlen : %X\n", n);
 				fprintf(stderr,"\ndata : ");
 				for (i=0;i<n;i++) 
@@ -1530,8 +1559,19 @@ int main(int argc, char *argv[])
 			}
 	       		for (i=0;i<n;i++) 
         	   		printf("%c",data[i]);
-			sl_wr32(sl, addr, 0);    // Reading complete flag
 		}
+#if 0 
+		if(kbhit()) {
+			write_uint32(sl->scsi_cmd_blk + 2, addr+4);
+			write_uint16(sl->scsi_cmd_blk + 6, 17);
+			stlink_cmd(sl, STLinkDebugReadMem32bit, addr+4, 4);    // Read RecieveLen
+                	n = read_uint32(sl->q_buf, 0);                     
+			if(!n) {
+				sl_wr32(sl, addr+40, getch());    // Write char
+				sl_wr32(sl, addr+4, 1);    	  // Write length
+			}
+		}
+#endif
 	}
 	/* Commands tend to 'stick' in the stlink.  Flush them. */
 	stl_get_status(sl);

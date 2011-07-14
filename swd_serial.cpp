@@ -1,16 +1,52 @@
 #include <string.h>
 #include "wirish.h"
 
+/**
+ * The buffer is empty when head == tail.
+ * The buffer is full when the head is one byte in front of the tail,
+ * modulo buffer length.
+ * One byte is left free to distinguish empty from full. */
+
+#define SWD_TX_BUF_SIZE               64
+
+/** SWD device data structure */
+typedef struct swd_dev {
+    uint32 head;         /**< Index of the next item to remove */
+    uint32 tail;         /**< Index where the next item will get inserted */
+    uint32 size;         /**< Buffer capacity minus one */
+    uint8  buf[SWD_TX_BUF_SIZE];   /**< Actual TX buffer used by rb */
+} swd_dev;
+
+
+static inline void swd_rb_init(swd_dev *swd, uint16 size) {
+    swd->head = 0;
+    swd->tail = 0;
+    swd->size = size - 1;
+}
+
+static inline int swd_rb_is_full(swd_dev *swd) {
+    return (swd->tail + 1 == swd->head) ||
+        (swd->tail == swd->size && swd->head == 0);
+}
+
+static inline void swd_rb_insert(swd_dev *swd, uint8 element) {
+    swd->buf[swd->tail] = element;
+    swd->tail = (swd->tail == swd->size) ? 0 : swd->tail + 1;
+}
+
+static inline int swd_rb_safe_insert(swd_dev *swd, uint8 element) {
+    if (swd_rb_is_full(swd)) {
+        return 0;
+    }
+    swd_rb_insert(swd, element);
+    return 1;
+}
+
+
 #define SWD_TIMEOUT 3000
 
-typedef struct _SWDSERDATA {
-    uint32       SendLen;
-    uint32       ReceiveLen;
-    uint8        SendBuf[32];
-    uint8        ReceiveBuf[32];
-} SWDSERDATA, *PSWDSERDATA;
 
-SWDSERDATA SWDData;
+swd_dev swd;
 
 volatile uint32 *DCRDR = (uint32 *)0xe000edf8;
 
@@ -33,33 +69,30 @@ extern SWDSerial SerialSWD;
 
 uint32 SWDSendBytes(uint8 *buf, uint32 len)
 {
-    if (!buf || SWDData.SendLen)
+uint16 i;
+    if (!buf)
         return 0;
-    if (len > 31)
-        len = 31;
-    memcpy(SWDData.SendBuf, buf, len); 
-    SWDData.SendLen = len;
-    return len;
+    if (len > swd.size)
+        len = swd.size;
+    for(i=0;i<len;i++)
+	if(!swd_rb_safe_insert(&swd, buf[i])) 
+	    break;
+    return i;
 }
 
 uint32 SWDReceiveBytes( uint8 *buf, uint32 len)
 {
-    if (!buf || !SWDData.ReceiveLen)
+    if (!buf)
         return 0;
     if (len > 31)
         len = 31;
-    if (len > SWDData.ReceiveLen)
-        len = SWDData.ReceiveLen;
 
-    memcpy(buf,SWDData.ReceiveBuf, len); 
-    SWDData.ReceiveLen -= len;
     return len;
 }
 
 SWDSerial::SWDSerial(void) {
-    SWDData.SendLen = 0;
-    SWDData.ReceiveLen = 0;
-    *DCRDR = (uint32)&SWDData;
+    swd_rb_init(&swd, SWD_TX_BUF_SIZE);
+    *DCRDR = (uint32)&swd;
 }
 
 void SWDSerial::write(uint8 ch) {
@@ -90,7 +123,7 @@ void SWDSerial::write(const void *buf, uint32 len) {
 }
 
 uint32 SWDSerial::available(void) {
-    return SWDData.ReceiveLen;
+    return 0;
 }
 
 uint32 SWDSerial::read(void *buf, uint32 len) {
@@ -125,14 +158,13 @@ void setup() {
 
     SerialSWD.print("Hello!\n");
 }
-
 int i=0;
-
 void loop() {
     toggleLED();
-    SerialSWD.print(" Hello! Hello!\n");
-    SerialSWD.print(i);
-    i++;
+    i = millis();
+//    SerialSWD.print(" Hello! Hello!\n");
+    SerialSWD.println(i);
+
 }
 
 // Force init to be called *first*, i.e. before static object allocation.
