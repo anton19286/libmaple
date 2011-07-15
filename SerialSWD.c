@@ -1439,22 +1439,29 @@ static void stm_show_CAN(struct stlink* sl, unsigned int can_num)
 }
 
 #define SWD_TX_BUF_SIZE 64
+#define SWD_RX_BUF_SIZE 16
 
-/** SWD device data structure */
+/** SWD ring buffers data structure */
 
 typedef struct swd_dev {
-    uint32_t head;         /* Index of the next item to remove */
-    uint32_t tail;         /* Index where the next item will get inserted */
-    uint32_t size;         /* Buffer capacity minus one */
-    uint8_t tx_buf[SWD_TX_BUF_SIZE];   /**< Actual TX buffer used by rb */
+    uint32_t tx_head;         /**< Index of the next item to remove */
+    uint32_t tx_tail;         /**< Index where the next item will get inserted */
+    uint32_t tx_size;         /**< Buffer capacity minus one */
+    uint32_t rx_head;         /**< Index of the next item to remove */
+    uint32_t rx_tail;         /**< Index where the next item will get inserted */
+    uint32_t rx_size;         /**< Buffer capacity minus one */
+    uint8_t  tx_buf[SWD_TX_BUF_SIZE];   /**< Actual TX buffer used by rb */
+    uint32_t rx_buf[SWD_RX_BUF_SIZE];   /**< Actual RX buffer used by rb */
 } swd_dev;
+
+    uint32_t  local_rx_buf[SWD_RX_BUF_SIZE];   
 
 
 uint16_t rb_full_count(swd_dev *swd) {
     swd_dev *arb = swd;
-    int32_t size = arb->tail - arb->head;
-    if (arb->tail < arb->head) {
-        size += arb->size + 1;
+    int32_t size = arb->tx_tail - arb->tx_head;
+    if (arb->tx_tail < arb->tx_head) {
+        size += arb->tx_size + 1;
     }
     return (uint16_t)size;
 }
@@ -1462,16 +1469,21 @@ uint16_t rb_full_count(swd_dev *swd) {
 uint16_t rb_remove_all(swd_dev *swd, uint8_t *buf) {
     uint16_t i, n = rb_full_count(swd);
     for(i=0;i<n;i++) { 
-        buf[i] = swd->tx_buf[swd->head];
-        swd->head = (swd->head == swd->size) ? 0 : swd->head + 1;
+        buf[i] = swd->tx_buf[swd->tx_head];
+        swd->tx_head = (swd->tx_head == swd->tx_size) ? 0 : swd->tx_head + 1;
     }
     return n;	
+}
+
+int swd_rb_is_full(swd_dev *swd) {
+    return (swd->rx_tail + 1 == swd->rx_head) ||
+        (swd->rx_tail == swd->rx_size && swd->rx_head == 0);
 }
 
 int main(int argc, char *argv[])
 {
         char *program;		/* Program name without path. */
-	char *dev_name;				/* Path of SCSI device e.g. "/dev/sg1" */
+	char *dev_name;		/* Path of SCSI device e.g. "/dev/sg1" */
 #ifndef WINDOWS
 	int fd;
 #else
@@ -1537,18 +1549,23 @@ int main(int argc, char *argv[])
 	addr = read_uint32(sl->q_buf, 0);
 	if (sl->verbose)
 		fprintf(stderr,"DCRDR 0xe000edf8 is %8.8x\n", addr);
+	write_uint32(sl->scsi_cmd_blk + 2, addr);
+	write_uint16(sl->scsi_cmd_blk + 6, 13);
+	stlink_cmd(sl, STLinkDebugReadMem32bit, addr, 12);
+	swd_dev *swd = (void*)sl->q_buf;
+	uint32_t size = swd->tx_size + 1;
 
-uint8_t data[SWD_TX_BUF_SIZE];
+	uint8_t data[SWD_TX_BUF_SIZE];
 
 	while(1){
 		write_uint32(sl->scsi_cmd_blk + 2, addr);
-		write_uint16(sl->scsi_cmd_blk + 6, 13+SWD_TX_BUF_SIZE);
-		stlink_cmd(sl, STLinkDebugReadMem32bit, addr, 12+SWD_TX_BUF_SIZE);
-		swd_dev *swd = (void*)sl->q_buf;
+		write_uint16(sl->scsi_cmd_blk + 6, 25+size);
+		stlink_cmd(sl, STLinkDebugReadMem32bit, addr, 24+size);
+		swd = (void*)sl->q_buf;
 		n = rb_full_count(swd);
 		if(n) {
-		rb_remove_all(swd, data);
-			sl_wr32(sl, addr, swd->head);
+			rb_remove_all(swd, data);
+			sl_wr32(sl, addr, swd->tx_head);
 			if (sl->verbose) {
 				fprintf(stderr,"\naddr abs : %X", addr);
 				fprintf(stderr,"\nlen : %X\n", n);
@@ -1560,16 +1577,15 @@ uint8_t data[SWD_TX_BUF_SIZE];
 	       		for (i=0;i<n;i++) 
         	   		printf("%c",data[i]);
 		}
-#if 0 
+#if 1
 		if(kbhit()) {
-			write_uint32(sl->scsi_cmd_blk + 2, addr+4);
-			write_uint16(sl->scsi_cmd_blk + 6, 17);
-			stlink_cmd(sl, STLinkDebugReadMem32bit, addr+4, 4);    // Read RecieveLen
-                	n = read_uint32(sl->q_buf, 0);                     
-			if(!n) {
-				sl_wr32(sl, addr+40, getch());    // Write char
-				sl_wr32(sl, addr+4, 1);    	  // Write length
-			}
+		    if (!swd_rb_is_full(swd)) {
+  		        local_rx_buf[swd->rx_tail] = getch();
+		        sl_wr32(sl, (addr + 24 + (swd->tx_size + 1) + 4 * swd->rx_tail), 
+		    	    local_rx_buf[swd->rx_tail]);
+ 		        swd->rx_tail = (swd->rx_tail == swd->rx_size) ? 0 : swd->rx_tail + 1;
+		        sl_wr32(sl, addr+16, swd->rx_tail);
+		    }
 		}
 #endif
 	}
