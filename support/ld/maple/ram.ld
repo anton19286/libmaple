@@ -1,6 +1,5 @@
 /*
- * Linker script for STM32.
- * STM32F103RBT6 medium density chip linker script. Loads to ram.
+ * Maple (STM32F103RBT6, medium density) linker script for RAM builds.
  */
 
 /*
@@ -20,8 +19,9 @@ GROUP(libcs3_stm32_med_density.a)
 REGION_ALIAS("REGION_TEXT", ram);
 REGION_ALIAS("REGION_DATA", ram);
 REGION_ALIAS("REGION_BSS", ram);
+REGION_ALIAS("REGION_RODATA", ram);
 
 /*
  * Define the rest of the sections
  */
-INCLUDE common_ram.inc
+INCLUDE common.inc

@@ -425,9 +425,10 @@ typedef enum rcc_pll_multiplier {
 } rcc_pll_multiplier;
 
 /**
- * @brief Identifies bus and clock line for a device
+ * @brief Identifies bus and clock line for a peripheral.
  *
- * Also generally useful as a unique identifier for that device.
+ * Also generally useful as a unique identifier for that peripheral
+ * (or its corresponding device struct).
  */
 typedef enum rcc_clk_id {
     RCC_GPIOA,
@@ -455,6 +456,7 @@ typedef enum rcc_clk_id {
     RCC_CRC,
     RCC_FLITF,
     RCC_SRAM,
+    RCC_USB,
 #if defined(STM32_HIGH_DENSITY) || defined(STM32_XL_DENSITY)
     RCC_GPIOE,
     RCC_GPIOF,

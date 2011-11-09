@@ -237,7 +237,10 @@ typedef struct usart_dev {
     usart_reg_map *regs;             /**< Register map */
     ring_buffer *rb;                 /**< RX ring buffer */
     uint32 max_baud;                 /**< Maximum baud */
-    uint8 rx_buf[USART_RX_BUF_SIZE]; /**< Actual RX buffer used by rb */
+    uint8 rx_buf[USART_RX_BUF_SIZE]; /**< @brief Deprecated.
+                                      * Actual RX buffer used by rb.
+                                      * This field will be removed in
+                                      * a future release. */
     rcc_clk_id clk_id;               /**< RCC clock information */
     nvic_irq_num irq_num;            /**< USART NVIC interrupt */
 } usart_dev;
@@ -256,6 +259,7 @@ void usart_enable(usart_dev *dev);
 void usart_disable(usart_dev *dev);
 void usart_foreach(void (*fn)(usart_dev *dev));
 uint32 usart_tx(usart_dev *dev, const uint8 *buf, uint32 len);
+uint32 usart_rx(usart_dev *dev, uint8 *buf, uint32 len);
 void usart_putudec(usart_dev *dev, uint32 val);
 
 /**
@@ -275,8 +279,7 @@ static inline void usart_disable_all(void) {
  * @param byte Byte to transmit.
  */
 static inline void usart_putc(usart_dev* dev, uint8 byte) {
-    uint8 buf[] = {byte};
-    while (!usart_tx(dev, buf, 1))
+    while (!usart_tx(dev, &byte, 1))
         ;
 }
 

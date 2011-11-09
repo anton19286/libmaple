@@ -1,80 +1,12 @@
 .DEFAULT_GOAL := sketch
 
 # Valid BOARDs: maple, maple_native, discovery, ...
-BOARD ?= maple
+BOARD ?= discovery
 MEMORY_TARGET ?= flash
 
 # USB ID for DFU upload
 VENDOR_ID  := 1EAF
 PRODUCT_ID := 0003
-
-# Guess the MCU based on the BOARD (can be overridden )
-# FIXME the error LED config needs to be in wirish/ instead
-ifeq ($(BOARD), maple)
-   MCU := STM32F103RB
-   PRODUCT_ID := 0003
-   ERROR_LED_PORT := GPIOA
-   ERROR_LED_PIN  := 5
-   DENSITY := STM32_MEDIUM_DENSITY
-endif
-ifeq ($(BOARD), maple_native)
-   MCU := STM32F103ZE
-   PRODUCT_ID := 0003
-   ERROR_LED_PORT := GPIOC
-   ERROR_LED_PIN  := 15
-   DENSITY := STM32_HIGH_DENSITY
-endif
-ifeq ($(BOARD), maple_mini)
-   MCU := STM32F103CB
-   PRODUCT_ID := 0003
-   ERROR_LED_PORT := GPIOB
-   ERROR_LED_PIN  := 1
-   DENSITY := STM32_MEDIUM_DENSITY
-endif
-ifeq ($(BOARD), maple_RET6)
-   MCU := STM32F103RE
-   PRODUCT_ID := 0003
-   ERROR_LED_PORT := GPIOA
-   ERROR_LED_PIN := 5
-   DENSITY := STM32_HIGH_DENSITY
-endif
-ifeq ($(BOARD), discovery)
-   MCU := STM32F100RB
-   PRODUCT_ID := 0003
-   ERROR_LED_PORT := GPIOC
-   ERROR_LED_PIN  := 9
-   DENSITY := STM32_MEDIUM_DENSITY
-   ST-LINK_CLI := "ST-LINK_CLI.exe"
-#   STLINK_DOWNLOD := stlink-download
-endif
-
-# Some target specific things
-ifeq ($(MEMORY_TARGET), ram)
-   LDSCRIPT := $(BOARD)/ram.ld
-   VECT_BASE_ADDR := VECT_TAB_RAM
-endif
-ifeq ($(MEMORY_TARGET), flash)
-   LDSCRIPT := $(BOARD)/flash.ld
-   VECT_BASE_ADDR := VECT_TAB_FLASH
-endif
-ifeq ($(MEMORY_TARGET), jtag)
-   LDSCRIPT := $(BOARD)/jtag.ld
-   VECT_BASE_ADDR := VECT_TAB_BASE
-endif
-
-# Some target specific things
-ifeq ($(MEMORY_TARGET), ram)
-   LDSCRIPT := $(BOARD)/ram.ld
-   VECT_BASE_ADDR := VECT_TAB_RAM
-endif
-ifeq ($(MEMORY_TARGET), flash)
-   LDSCRIPT := $(BOARD)/flash.ld
-   VECT_BASE_ADDR := VECT_TAB_FLASH
-endif
-ifeq ($(MEMORY_TARGET), jtag)
-   LDSCRIPT := $(BOARD)/jtag.ld
-   VECT_BASE_ADDR := VECT_TAB_BASE
-endif
 
 # Useful paths
 ifeq ($(LIB_MAPLE_HOME),)
@@ -85,6 +17,11 @@ endif
 BUILD_PATH = build
 LIBMAPLE_PATH := $(SRCROOT)/libmaple
 SUPPORT_PATH := $(SRCROOT)/support
+# Support files for this Makefile
+MAKEDIR := $(SUPPORT_PATH)/make
+
+# $(BOARD)- and $(MEMORY_TARGET)-specific configuration
+include $(MAKEDIR)/target-config.mk
 
 # Compilation flags.
 # FIXME remove the ERROR_LED config

@@ -27,12 +27,40 @@
 #ifndef _USB_H_
 #define _USB_H_
 
-#include "usb_lib.h"
-#include "libmaple.h"
+#include "libmaple_types.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#ifndef USB_ISR_MSK
+/* Handle CTRM, WKUPM, SUSPM, ERRM, SOFM, ESOFM, RESETM */
+#define USB_ISR_MSK 0xBF00
+#endif
+
+typedef enum usb_dev_state {
+    USB_UNCONNECTED,
+    USB_ATTACHED,
+    USB_POWERED,
+    USB_SUSPENDED,
+    USB_ADDRESSED,
+    USB_CONFIGURED
+} usb_dev_state;
+
+/* Encapsulates global state formerly handled by usb_lib/
+ * functionality */
+typedef struct usblib_dev {
+    uint32 irq_mask;
+    void (**ep_int_in)(void);
+    void (**ep_int_out)(void);
+    usb_dev_state state;
+} usblib_dev;
+
+extern usblib_dev *USBLIB;
+
+/*
+ * Convenience routines, etc.
+ */
 
 typedef enum {
     RESUME_EXTERNAL,
@@ -45,45 +73,18 @@ typedef enum {
     RESUME_ESOF
 } RESUME_STATE;
 
-typedef enum {
-    UNCONNECTED,
-    ATTACHED,
-    POWERED,
-    SUSPENDED,
-    ADDRESSED,
-    CONFIGURED
-} DEVICE_STATE;
+void usb_init_usblib(void (**ep_int_in)(void), void (**ep_int_out)(void));
 
-extern volatile uint32 bDeviceState;
-
-void setupUSB(void);
-void disableUSB(void);
 void usbSuspend(void);
 void usbResumeInit(void);
 void usbResume(RESUME_STATE);
-
-RESULT usbPowerOn(void);
-RESULT usbPowerOff(void);
-
-void usbDsbISR(void);
-void usbEnbISR(void);
 
 /* overloaded ISR routine, this is the main usb ISR */
 void __irq_usb_lp_can_rx0(void);
 void usbWaitReset(void);
 
-/* blocking functions for send/receive */
-void   usbBlockingSendByte(char ch);
-uint32 usbSendBytes(const uint8* sendBuf,uint32 len);
-uint32 usbBytesAvailable(void);
-uint32 usbReceiveBytes(uint8* recvBuf, uint32 len);
-uint8 usbGetDTR(void);
-uint8 usbGetRTS(void);
 uint8 usbIsConnected(void);
 uint8 usbIsConfigured(void);
-uint16 usbGetPending(void);
-
-void usbSendHello(void);
 
 #ifdef __cplusplus
 } // extern "C"

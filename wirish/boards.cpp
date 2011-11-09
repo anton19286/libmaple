@@ -37,13 +37,12 @@
 
 #include "flash.h"
 #include "rcc.h"
-#include "stm32.h"
 #include "nvic.h"
 #include "systick.h"
 #include "gpio.h"
 #include "adc.h"
 #include "timer.h"
-#include "usb.h"
+#include "usb_cdcacm.h"
 
 static void setupFlash(void);
 static void setupClocks(void);
@@ -62,7 +61,7 @@ void init(void) {
     setupTimers();
 // STM32F100RB has no USB
 #ifndef BOARD_discovery
-    setupUSB();
+    usb_cdcacm_enable(BOARD_USB_DISC_DEV, BOARD_USB_DISC_BIT);
 #endif
     boardInit();
 }

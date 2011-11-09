@@ -1,5 +1,6 @@
 /*
- * STM32F103RET6 high density bare metal linker script.
+ * Maple RET6 Edition (STM32F103RET6, high density) linker script for
+ * JTAG (bare metal, no bootloader) builds.
  */
 
 MEMORY
@@ -13,5 +14,7 @@ GROUP(libcs3_stm32_high_density.a)
 REGION_ALIAS("REGION_TEXT", rom);
 REGION_ALIAS("REGION_DATA", ram);
 REGION_ALIAS("REGION_BSS", ram);
+REGION_ALIAS("REGION_RODATA", rom);
 
-INCLUDE common_rom.inc
+_FLASH_BUILD = 1;
+INCLUDE common.inc

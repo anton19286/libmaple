@@ -42,11 +42,14 @@ extern "C"{
  * Bit manipulation
  */
 
+/** 1 << the bit number */
 #define BIT(shift)                     (1UL << (shift))
+/** Mask shifted left by 'shift' */
 #define BIT_MASK_SHIFT(mask, shift)    ((mask) << (shift))
 /** Bits m to n of x */
 #define GET_BITS(x, m, n) ((((uint32)x) << (31 - (n))) >> ((31 - (n)) + (m)))
-#define IS_POWER_OF_TWO(v)  (v && !(v & (v - 1)))
+/** True if v is a power of two (1, 2, 4, 8, ...) */
+#define IS_POWER_OF_TWO(v)  ((v) && !((v) & ((v) - 1)))
 
 /*
  * Failure routines
@@ -63,6 +66,19 @@ void throb(void);
 #define DEBUG_NONE      0
 #define DEBUG_FAULT     1
 #define DEBUG_ALL       2
+
+/**
+ * \def DEBUG_LEVEL
+ *
+ * Controls the level of assertion checking.
+ *
+ * The higher the debug level, the more assertions will be compiled
+ * in.  This increases the amount of debugging information, but slows
+ * down (and increases the size of) the binary.
+ *
+ * The debug levels, from lowest to highest, are DEBUG_NONE,
+ * DEBUG_FAULT, and DEBUG_ALL.  The default level is DEBUG_ALL.
+ */
 
 #ifndef DEBUG_LEVEL
 #define DEBUG_LEVEL DEBUG_ALL

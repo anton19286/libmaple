@@ -21,7 +21,8 @@ cppSRCS_$(d) := wirish_math.cpp		 \
                 boards/maple_mini.cpp	 \
                 boards/maple_native.cpp	 \
                 boards/maple_RET6.cpp	 \
-                boards/discovery.cpp	 \
+                boards/olimex_stm32_h103.cpp \
+                boards/discovery.cpp     \
                 comm/HardwareSerial.cpp	 \
                 comm/HardwareSPI.cpp	 \
 		HardwareTimer.cpp	 \
@@ -34,8 +35,9 @@ cppSRCS_$(d) := wirish_math.cpp		 \
 		wirish_digital.cpp
 
 ifneq ($(BOARD), discovery)
-cppSRCS_$(d) += usb_serial.cpp        
+cppSRCS_$(d) += usb_serial.cpp
 endif
+
 
 
 cFILES_$(d)   := $(cSRCS_$(d):%=$(d)/%)
@@ -53,4 +55,3 @@ TGT_BIN += $(OBJS_$(d))
 -include        $(DEPS_$(d))
 d               := $(dirstack_$(sp))
 sp              := $(basename $(sp))
-

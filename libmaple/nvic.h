@@ -27,6 +27,20 @@
 /**
  * @file nvic.h
  * @brief Nested vector interrupt controller support.
+ *
+ * Basic usage:
+ *
+ * @code
+ *   // Initialise the interrupt controller and point to the vector
+ *   // table at the start of flash.
+ *   nvic_init(0x08000000, 0);
+ *   // Bind in a timer interrupt handler
+ *   timer_attach_interrupt(TIMER_CC1_INTERRUPT, handler);
+ *   // Optionally set the priority
+ *   nvic_irq_set_priority(NVIC_TIMER1_CC, 5);
+ *   // All done, enable all interrupts
+ *   nvic_globalirq_enable();
+ * @endcode
  */
 
 #ifndef _NVIC_H_
@@ -60,8 +74,15 @@ typedef struct nvic_reg_map {
 #define NVIC_BASE                       ((struct nvic_reg_map*)0xE000E100)
 
 /**
- * Interrupt vector table interrupt numbers.  Each enumerator is the
- * position of the corresponding interrupt in the vector table. */
+ * @brief Interrupt vector table interrupt numbers.
+ *
+ * Each positive-valued enumerator is the position of the
+ * corresponding interrupt in the vector table.  Negative-valued
+ * enumerators correspond to interrupts controlled by the system
+ * handler block.
+ *
+ * @see scb.h
+ */
 typedef enum nvic_irq_num {
     NVIC_NMI            = -14,  /**< Non-maskable interrupt */
     NVIC_HARDFAULT      = -13,  /**< Hard fault (all class of fault) */
@@ -139,9 +160,24 @@ typedef enum nvic_irq_num {
 #endif
 } nvic_irq_num;
 
+/*
+ * Initialises the interrupt controller and sets all interrupts to the
+ * lowest priority.
+ *
+ * For stand-alone products, the base address is normally the start of
+ * flash (0x08000000).
+ *
+ * @param vector_table_address  base address of the vector table
+ */
 void nvic_init(uint32 vector_table_address, uint32 offset);
+
+/**
+ * Sets the base address of the vector table.
+ */
 void nvic_set_vector_table(uint32 address, uint32 offset);
+
 void nvic_irq_set_priority(nvic_irq_num irqn, uint8 priority);
+void nvic_sys_reset();
 
 /**
  * Enables interrupts and configurable fault handlers (clear PRIMASK).
@@ -203,4 +239,3 @@ static inline void nvic_irq_disable_all(void) {
 #endif
 
 #endif
-

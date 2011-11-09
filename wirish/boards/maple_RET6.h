@@ -32,16 +32,14 @@
  * See maple.h for more information on these definitions.
  */
 
-#include "gpio.h"
-#include "timer.h"
-
-#include "wirish_types.h"
-
 #ifndef _BOARDS_MAPLE_RET6_H_
 #define _BOARDS_MAPLE_RET6_H_
 
 /* A few of these values will seem strange given that it's a
  * high-density board. */
+
+#define CYCLES_PER_MICROSECOND  72
+#define SYSTICK_RELOAD_VAL      71999 /* takes a cycle to reload */
 
 #define BOARD_BUTTON_PIN        38
 #define BOARD_LED_PIN           13
@@ -86,5 +84,8 @@
 #define BOARD_JTDI_PIN          41
 #define BOARD_JTDO_PIN          42
 #define BOARD_NJTRST_PIN        43
+
+#define BOARD_USB_DISC_DEV      GPIOC
+#define BOARD_USB_DISC_BIT      12
 
 #endif

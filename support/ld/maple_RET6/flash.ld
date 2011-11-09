@@ -1,6 +1,6 @@
 /*
- * STM32F103RET6 high density chip linker script for use with Maple
- * bootloader.  Loads to Flash.
+ * Maple RET6 Edition (STM32F103RET6, high density) linker script for
+ * Flash builds.
  */
 
 MEMORY
@@ -14,5 +14,7 @@ GROUP(libcs3_stm32_high_density.a)
 REGION_ALIAS("REGION_TEXT", rom);
 REGION_ALIAS("REGION_DATA", ram);
 REGION_ALIAS("REGION_BSS", ram);
+REGION_ALIAS("REGION_RODATA", rom);
 
-INCLUDE common_rom.inc
+_FLASH_BUILD = 1;
+INCLUDE common.inc

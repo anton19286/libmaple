@@ -1,7 +1,7 @@
 /******************************************************************************
  * The MIT License
  *
- * Copyright (c) 2010 Perry Hung.
+ * Copyright (c) 2011 LeafLabs LLC.
  *
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
@@ -11,8 +11,8 @@
  * of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
  *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
@@ -24,32 +24,31 @@
  * SOFTWARE.
  *****************************************************************************/
 
-/**
- *  @file libmaple.h
- *  @brief General include file for libmaple
- */
+#ifndef _USB_LIB_GLOBALS_H_
+#define _USB_LIB_GLOBALS_H_
 
-#ifndef _LIBMAPLE_H_
-#define _LIBMAPLE_H_
+#include "usb_type.h"
+#include "usb_core.h"
 
-#include "libmaple_types.h"
-#include "stm32.h"
-#include "util.h"
-#include "delay.h"
-
-/*
- * Where to put usercode, based on space reserved for bootloader.
- *
- * FIXME this has no business being here
- */
-#ifdef MCU_STM32F100RB
-	#define USER_ADDR_ROM 0x08000000
-#else
-	#define USER_ADDR_ROM 0x08005000
-#endif
-	#define USER_ADDR_RAM 0x20000C00
-	#define STACK_TOP     0x20000800
-
-
+#ifdef __cplusplus
+extern "C" {
 #endif
 
+extern USER_STANDARD_REQUESTS  User_Standard_Requests;
+extern USER_STANDARD_REQUESTS *pUser_Standard_Requests;
+
+extern DEVICE_PROP  Device_Property;
+extern DEVICE_PROP *pProperty;
+
+extern DEVICE_INFO  Device_Info;
+extern DEVICE_INFO *pInformation;
+
+extern DEVICE Device_Table;
+extern u16 SaveRState;
+extern u16 SaveTState;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

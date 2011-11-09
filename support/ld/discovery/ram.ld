@@ -20,6 +20,7 @@ GROUP(libcs3_stm32_med_density.a)
 REGION_ALIAS("REGION_TEXT", ram);
 REGION_ALIAS("REGION_DATA", ram);
 REGION_ALIAS("REGION_BSS", ram);
+REGION_ALIAS("REGION_RODATA", rom);
 
 /*
  * Define the rest of the sections

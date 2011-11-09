@@ -27,8 +27,10 @@
 /**
  * @file   maple_native.cpp
  * @author Marti Bolivar <mbolivar@leaflabs.com>
- * @brief  Maple Native PIN_MAP and boardInit().
+ * @brief  Maple Native board file.
  */
+
+#ifdef BOARD_maple_native
 
 #include "maple_native.h"
 
@@ -39,9 +41,7 @@
 
 #include "wirish_types.h"
 
-#ifdef BOARD_maple_native
-
-void initSRAMChip(void);
+static void initSRAMChip(void);
 
 void boardInit(void) {
     initSRAMChip();
@@ -113,7 +113,7 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS] = {
     {GPIOA, TIMER3, ADC1,  6, 1,    6}, /* D54/PA6 */
     {GPIOA, TIMER3, ADC1,  7, 2,    7}, /* D55/PA7 */
 
-    /* Right (triple) header */
+    /* FSMC (triple) header */
 
     {GPIOF,   NULL, NULL,  0, 0, ADCx}, /* D56/PF0 */
     {GPIOD,   NULL, NULL, 11, 0, ADCx}, /* D57/PD11 */
@@ -179,19 +179,21 @@ extern const uint8 boardADCPins[BOARD_NR_ADC_PINS] __FLASH__ = {
     54, 55
 };
 
-/* FIXME [0.0.12] see comment by BOARD_NR_USED_PINS in maple_native.h */
 extern const uint8 boardUsedPins[BOARD_NR_USED_PINS] __FLASH__ = {
     BOARD_LED_PIN, BOARD_BUTTON_PIN, BOARD_JTMS_SWDIO_PIN,
-    BOARD_JTCK_SWCLK_PIN, BOARD_JTDI_PIN, BOARD_JTDO_PIN, BOARD_NJTRST_PIN
+    BOARD_JTCK_SWCLK_PIN, BOARD_JTDI_PIN, BOARD_JTDO_PIN, BOARD_NJTRST_PIN,
+    56, 58, 59, 61, 62, 64, 65, 67, 68, 70, 71, 73, 74, 76, 77, 78, 79, 81,
+    82, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100
 };
 
-void initSRAMChip(void) {
+static void initSRAMChip(void) {
     fsmc_nor_psram_reg_map *regs = FSMC_NOR_PSRAM1_BASE;
 
     fsmc_sram_init_gpios();
     rcc_clk_enable(RCC_FSMC);
 
-    regs->BCR = FSMC_BCR_WREN | FSMC_BCR_MWID_16BITS | FSMC_BCR_MBKEN;
+    regs->BCR = (FSMC_BCR_WREN | FSMC_BCR_MWID_16BITS | FSMC_BCR_MTYP_SRAM |
+                 FSMC_BCR_MBKEN);
     fsmc_nor_psram_set_addset(regs, 0);
     fsmc_nor_psram_set_datast(regs, 3);
 }
