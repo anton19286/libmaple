@@ -162,46 +162,62 @@
 
 #endif
 
-
-/* MCU-specific configuration */
 #if defined(MCU_STM32F103RB)
     /* e.g., LeafLabs Maple */
 
-    /* Number of GPIO ports (GPIOA, GPIOB, etc.) */
-    #define NR_GPIO_PORTS              4
+    #define STM32_NR_GPIO_PORTS          4
+    #define STM32_DELAY_US_MULT         12
+    #define STM32_SRAM_END              ((void*)0x20005000)
 
-    /* SRAM size, in bytes */
-    #define SRAM_SIZE             0x5000
+    #define NR_GPIO_PORTS               STM32_NR_GPIO_PORTS
+    #define DELAY_US_MULT               STM32_DELAY_US_MULT
 
 #elif defined(MCU_STM32F103ZE)
     /* e.g., LeafLabs Maple Native */
 
-    #define NR_GPIO_PORTS              7
-    #define SRAM_SIZE            0x10000
+    #define STM32_NR_GPIO_PORTS          7
+    #define STM32_DELAY_US_MULT         12
+    #define STM32_SRAM_END              ((void*)0x20010000)
+
+    #define NR_GPIO_PORTS               STM32_NR_GPIO_PORTS
+    #define DELAY_US_MULT               STM32_DELAY_US_MULT
 
 #elif defined(MCU_STM32F103CB)
     /* e.g., LeafLabs Maple Mini */
 
-    /* Note that this is not, strictly speaking, true.  But only pins
-       0 and 1 exist, and they're used for OSC on the Mini, so we'll
-       live with this for now. */
-    #define NR_GPIO_PORTS              3
+    /* This STM32_NR_GPIO_PORTS value is not, strictly speaking, true.
+     * But only pins 0 and 1 exist, and they're used for OSC on the
+     * Mini, so we'll live with this for now. */
+    #define STM32_NR_GPIO_PORTS          3
+    #define STM32_DELAY_US_MULT         12
+    #define STM32_SRAM_END              ((void*)0x20005000)
 
-    #define SRAM_SIZE             0x5000
+    #define NR_GPIO_PORTS               STM32_NR_GPIO_PORTS
+    #define DELAY_US_MULT               STM32_DELAY_US_MULT
 
 #elif defined(MCU_STM32F103RE)
     /* e.g., LeafLabs Maple RET6 edition */
 
-    #define NR_GPIO_PORTS              4
-    #define SRAM_SIZE            0x10000
+    #define STM32_NR_GPIO_PORTS          4
+    #define STM32_DELAY_US_MULT         12
+    #define STM32_SRAM_END              ((void*)0x20010000)
+
+    #define NR_GPIO_PORTS               STM32_NR_GPIO_PORTS
+    #define DELAY_US_MULT               STM32_DELAY_US_MULT
 
 #elif defined(MCU_STM32F100RB)
     /* e.g., STM32VLDISCOVERY -------------------*/
 
-    #define NR_GPIO_PORTS              4
-    #define SRAM_SIZE            0x2000
+    #define STM32_NR_GPIO_PORTS          4
+    #define STM32_DELAY_US_MULT          8
+    #define STM32_SRAM_END              ((void*)0x20005000)
+
+    #define NR_GPIO_PORTS               STM32_NR_GPIO_PORTS
+    #define DELAY_US_MULT               STM32_DELAY_US_MULT
+
     #define CYCLES_PER_MICROSECOND  CLOCK_SPEED_MHZ
     #define SYSTICK_RELOAD_VAL     (CLOCK_SPEED_HZ / 1000 - 1) /* takes a cycle to reload */
+
 #else
 
 #error "No MCU type specified. Add something like -DMCU_STM32F103RB "   \
@@ -209,6 +225,4 @@
 
 #endif
 
-
-#endif
-
+#endif  /* _STM32_H_ */

@@ -47,22 +47,27 @@
  * the documentation accordingly.
  */
 
-/* TODO [0.1.0] Document this here and make leaflabs-docs' page use
- * Breathe */
-
 class HardwareSerial : public Print {
 public:
     HardwareSerial(usart_dev *usart_device,
                    uint8 tx_pin,
                    uint8 rx_pin,
                    uint32 clock_speed);
+
+    /* Set up/tear down */
     void begin(uint32 baud);
     void end(void);
+
+    /* I/O */
     uint32 available(void);
     uint8 read(void);
     void flush(void);
     virtual void write(unsigned char);
     using Print::write;
+
+    /* Pin accessors */
+    int txPin(void) { return this->tx_pin; }
+    int rxPin(void) { return this->rx_pin; }
 private:
     usart_dev *usart_device;
     uint8 tx_pin;

@@ -12,6 +12,9 @@
 // Default USART baud rate
 #define BAUD     9600
 
+// Number of times to sample a pin per ADC noise measurement
+#define N_ADC_NOISE_MEASUREMENTS 40
+
 uint8 gpio_state[BOARD_NR_GPIO_PINS];
 
 const char* dummy_data = ("qwertyuiopasdfghjklzxcvbnmmmmmm,./1234567890-="
@@ -81,7 +84,7 @@ void loop () {
 
     while (SerialUSB.available()) {
         uint8 input = SerialUSB.read();
-        SerialUSB.println(input);
+        SerialUSB.println((char)input);
 
         switch(input) {
         case '\r':
@@ -121,6 +124,15 @@ void loop () {
                 Serial3.print(".");
                 SerialUSB.print(".");
             }
+            break;
+
+        case 'd':
+            SerialUSB.println("Disabling USB.  Press BUT to re-enable.");
+            SerialUSB.end();
+            pinMode(BOARD_BUTTON_PIN, INPUT);
+            while (!isButtonPressed())
+                ;
+            SerialUSB.begin();
             break;
 
         case 'n':
@@ -203,23 +215,6 @@ void loop () {
             cmd_servo_sweep();
             break;
 
-        case 'd':
-            SerialUSB.println("Pulling down D4, D22. Press any key.");
-            pinMode(22, INPUT_PULLDOWN);
-            pinMode(4, INPUT_PULLDOWN);
-            while (!SerialUSB.available()) {
-                continue;
-            }
-            SerialUSB.println("Pulling up D4, D22. Press any key.");
-            pinMode(22, INPUT_PULLUP);
-            pinMode(4, INPUT_PULLUP);
-            while (!SerialUSB.available()) {
-                continue;
-            }
-            SerialUSB.read();
-            pinMode(4, OUTPUT);
-            break;
-
         // Be sure to update cmd_print_help() if you implement these:
 
         case 'i':               // TODO
@@ -262,6 +257,7 @@ void cmd_print_help(void) {
     SerialUSB.println("");
     SerialUSB.println("Command Listing");
     SerialUSB.println("\t?: print this menu");
+    SerialUSB.println("\td: Disable SerialUSB (press button to re-enable)");
     SerialUSB.println("\th: print this menu");
     SerialUSB.println("\tw: print Hello World on all 3 USARTS");
     SerialUSB.println("\tn: measure noise and do statistics");
@@ -298,18 +294,31 @@ void cmd_print_help(void) {
 }
 
 void cmd_adc_stats(void) {
-    SerialUSB.println("Taking ADC noise stats.");
-    digitalWrite(BOARD_LED_PIN, 0);
-    for (uint32 i = 0; i < BOARD_NR_ADC_PINS; i++) {
-        delay(5);
+    SerialUSB.println("Taking ADC noise stats.  Press ESC to stop, "
+                      "'R' to repeat same pin, anything else for next pin.");
+
+    uint32 i = 0;
+    while (i < BOARD_NR_ADC_PINS) {
         measure_adc_noise(boardADCPins[i]);
+
+        SerialUSB.println("----------");
+        uint8 c = SerialUSB.read();
+        if (c == ESC) {
+            break;
+        } else if (c != 'r' && c != 'R') {
+            i++;
+        }
     }
 }
 
 void cmd_stressful_adc_stats(void) {
-    SerialUSB.println("Taking ADC noise stats under duress.");
+    SerialUSB.println("Taking ADC noise stats under duress.  Press ESC to "
+                      "stop, 'R' to repeat same pin, anything else for next "
+                      "pin.");
 
-    for (uint32 i = 0; i < BOARD_NR_ADC_PINS; i++) {
+    uint32 i = 0;
+    while (i < BOARD_NR_ADC_PINS) {
+        // use PWM to create digital noise
         for (uint32 j = 0; j < BOARD_NR_PWM_PINS; j++) {
             if (boardADCPins[i] != boardPWMPins[j]) {
                 pinMode(boardPWMPins[j], PWM);
@@ -317,15 +326,22 @@ void cmd_stressful_adc_stats(void) {
             }
         }
 
-        Serial1.print(dummy_data);
-
         measure_adc_noise(boardADCPins[i]);
 
+        // turn off the noise
         for (uint32 j = 0; j < BOARD_NR_PWM_PINS; j++) {
             if (boardADCPins[i] != boardPWMPins[j]) {
                 pinMode(boardPWMPins[j], OUTPUT);
                 digitalWrite(boardPWMPins[j], LOW);
             }
+        }
+
+        SerialUSB.println("----------");
+        uint8 c = SerialUSB.read();
+        if (c == ESC) {
+            break;
+        } else if (c != 'r' && c != 'R') {
+            i++;
         }
     }
 }
@@ -453,7 +469,7 @@ void cmd_sequential_adc_reads(void) {
                     SerialUSB.print("0");
                 }
             }
-            SerialUSB.println("");
+            SerialUSB.println();
         }
         pinMode(boardADCPins[i], OUTPUT);
         digitalWrite(boardADCPins[i], 0);
@@ -759,7 +775,8 @@ void cmd_board_info(void) {     // TODO print more information
 // -- Helper functions --------------------------------------------------------
 
 void measure_adc_noise(uint8 pin) {
-    uint16 data[100];
+    const int N = 1000;
+    uint16 x;
     float mean = 0;
     float delta = 0;
     float M2 = 0;
@@ -767,21 +784,23 @@ void measure_adc_noise(uint8 pin) {
 
     // Variance algorithm from Welford, via Knuth, by way of Wikipedia:
     // http://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#On-line_algorithm
-    for (int i = 0; i < 100; i++) {
-        data[i] = analogRead(pin);
-        delta = data[i] - mean;
-        mean = mean + delta / (i + 1);
-        M2 = M2 + delta * (data[i] - mean);
+    for (int sample = 0; sample < N_ADC_NOISE_MEASUREMENTS; sample++) {
+        for (int i = 1; i <= N; i++) {
+            x = analogRead(pin);
+            delta = x - mean;
+            mean += delta / i;
+            M2 = M2 + delta * (x - mean);
+        }
+        SerialUSB.print("header: D");
+        SerialUSB.print(pin, DEC);
+        SerialUSB.print("\tn: ");
+        SerialUSB.print(N, DEC);
+        SerialUSB.print("\tmean: ");
+        SerialUSB.print(mean);
+        SerialUSB.print("\tvariance: ");
+        SerialUSB.println(M2 / (float)(N-1));
     }
 
-    SerialUSB.print("header: D");
-    SerialUSB.print(pin, DEC);
-    SerialUSB.print("\tn: ");
-    SerialUSB.print(100, DEC);
-    SerialUSB.print("\tmean: ");
-    SerialUSB.print(mean);
-    SerialUSB.print("\tvariance: ");
-    SerialUSB.println(M2 / 99.0);
     pinMode(pin, OUTPUT);
 }
 

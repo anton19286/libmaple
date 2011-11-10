@@ -59,8 +59,6 @@ void soliloquies(uint32 bitOrder);
 
 void setup() {
     pinMode(BOARD_LED_PIN, OUTPUT);
-    while (!SerialUSB.available())
-        ;
     SerialUSB.read();
 }
 
@@ -76,7 +74,7 @@ void loop() {
     SerialUSB.println();
 
     SerialUSB.println("** Alice will now wax eloquent in various styles. "
-                    "Press any key for the next configuration.");
+                      "Press any key for the next configuration.");
     soliloquies(MSBFIRST);
     soliloquies(LSBFIRST);
 

@@ -62,7 +62,6 @@ ifeq ($(BOARD), discovery)
 #   STLINK_DOWNLOD := stlink-download
 endif
 
-
 # Memory target-specific configuration values
 
 ifeq ($(MEMORY_TARGET), ram)

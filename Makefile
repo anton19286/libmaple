@@ -1,14 +1,12 @@
+# Try "make help" first
+
 .DEFAULT_GOAL := sketch
 
-# Valid BOARDs: maple, maple_native, discovery, ...
-BOARD ?= discovery
-MEMORY_TARGET ?= flash
+##
+## Useful paths, constants, etc.
+##
 
-# USB ID for DFU upload
-VENDOR_ID  := 1EAF
-PRODUCT_ID := 0003
 
-# Useful paths
 ifeq ($(LIB_MAPLE_HOME),)
 SRCROOT := .
 else
@@ -16,38 +14,66 @@ SRCROOT := $(LIB_MAPLE_HOME)
 endif
 BUILD_PATH = build
 LIBMAPLE_PATH := $(SRCROOT)/libmaple
+WIRISH_PATH := $(SRCROOT)/wirish
 SUPPORT_PATH := $(SRCROOT)/support
+# Support files for linker
+LDDIR := $(SUPPORT_PATH)/ld
 # Support files for this Makefile
 MAKEDIR := $(SUPPORT_PATH)/make
+
+# USB ID for DFU upload
+VENDOR_ID  := 1EAF
+PRODUCT_ID := 0003
+
+##
+## Target-specific configuration.  This determines some compiler and
+## linker options/flags.
+##
+
+# Try "make help" for more information on BOARD and MEMORY_TARGET;
+# these default to a Maple Flash build.
+BOARD ?= discovery
+MEMORY_TARGET ?= flash
 
 # $(BOARD)- and $(MEMORY_TARGET)-specific configuration
 include $(MAKEDIR)/target-config.mk
 
-# Compilation flags.
-# FIXME remove the ERROR_LED config
+##
+## Compilation flags
+##
+
 GLOBAL_FLAGS    := -D$(VECT_BASE_ADDR)					     \
 		   -DBOARD_$(BOARD) -DMCU_$(MCU)			     \
 		   -DERROR_LED_PORT=$(ERROR_LED_PORT)			     \
 		   -DERROR_LED_PIN=$(ERROR_LED_PIN)			     \
-		   -D$(DENSITY) 
+		   -D$(DENSITY)
 GLOBAL_CFLAGS   := -Os -g3 -gdwarf-2  -mcpu=cortex-m3 -mthumb -march=armv7-m \
 		   -nostdlib -ffunction-sections -fdata-sections	     \
 		   -Wl,--gc-sections $(GLOBAL_FLAGS)
 GLOBAL_CXXFLAGS := -fno-rtti -fno-exceptions -Wall $(GLOBAL_FLAGS)
 GLOBAL_ASFLAGS  := -mcpu=cortex-m3 -march=armv7-m -mthumb		     \
 		   -x assembler-with-cpp $(GLOBAL_FLAGS)
-
-LDDIR    := $(SUPPORT_PATH)/ld
 LDFLAGS  = -T$(LDDIR)/$(LDSCRIPT) -L$(LDDIR)    \
             -mcpu=cortex-m3 -mthumb -Xlinker     \
             --gc-sections --print-gc-sections --march=armv7-m -Wall
 
-# Set up build rules and some useful templates
+##
+## Build rules and useful templates
+##
+
 include $(SUPPORT_PATH)/make/build-rules.mk
 include $(SUPPORT_PATH)/make/build-templates.mk
 
-# Set all submodules here
-LIBMAPLE_MODULES := $(SRCROOT)/libmaple
+##
+## Set all submodules here
+##
+
+# Try to keep LIBMAPLE_MODULES a simply-expanded variable
+ifeq ($(LIBMAPLE_MODULES),)
+	LIBMAPLE_MODULES := $(SRCROOT)/libmaple
+else
+	LIBMAPLE_MODULES += $(SRCROOT)/libmaple
+endif
 LIBMAPLE_MODULES += $(SRCROOT)/wirish
 # Official libraries:
 LIBMAPLE_MODULES += $(SRCROOT)/libraries/Servo
@@ -57,13 +83,17 @@ LIBMAPLE_MODULES += $(SRCROOT)/libraries/Wire
 # Experimental libraries:
 LIBMAPLE_MODULES += $(SRCROOT)/libraries/FreeRTOS
 
-# call each module rules.mk
+# Call each module's rules.mk:
 $(foreach m,$(LIBMAPLE_MODULES),$(eval $(call LIBMAPLE_MODULE_template,$(m))))
 
-# Main target
+##
+## Targets
+##
+
+# main target
 include $(SRCROOT)/build-targets.mk
 
-.PHONY: install sketch clean help debug cscope tags ctags ram flash jtag
+.PHONY: install sketch clean help debug cscope tags ctags ram flash jtag doxygen mrproper
 
 # Target upload commands
 UPLOAD_ram   := $(SUPPORT_PATH)/scripts/reset.py && \
@@ -83,13 +113,13 @@ endif
 
 UPLOAD_jtag  := $(OPENOCD_WRAPPER) flash
 
-# conditionally upload to whatever the last build was
+# Conditionally upload to whatever the last build was
 install: INSTALL_TARGET = $(shell cat $(BUILD_PATH)/build-type 2>/dev/null)
 install: $(BUILD_PATH)/$(BOARD).bin
-	@echo Install target: $(INSTALL_TARGET)
+	@echo "Install target:" $(INSTALL_TARGET)
 	$(UPLOAD_$(INSTALL_TARGET))
 
-# Force a rebuild if the maple target changed
+# Force a rebuild if the target changed
 PREV_BUILD_TYPE = $(shell cat $(BUILD_PATH)/build-type 2>/dev/null)
 build-check:
 ifneq ($(PREV_BUILD_TYPE), $(MEMORY_TARGET))
@@ -101,23 +131,36 @@ sketch: build-check MSG_INFO $(BUILD_PATH)/$(BOARD).bin
 clean:
 	rm -rf build
 
+mrproper: clean
+	rm -rf doxygen
+
 help:
 	@echo ""
 	@echo "  libmaple Makefile help"
 	@echo "  ----------------------"
-	@echo "  Compile targets (default MEMORY_TARGET=flash):"
-	@echo "      ram:    Compile sketch code to ram"
-	@echo "      flash:  Compile sketch code to flash"
-	@echo "      jtag:   Compile sketch code to jtag"
-	@echo "      sketch: Compile sketch code to target MEMORY_TARGET"
 	@echo "  "
 	@echo "  Programming targets:"
-	@echo "      install:  Upload code to target"
+	@echo "      sketch:   Compile for BOARD to MEMORY_TARGET (default)."
+	@echo "      install:  Compile and upload code over USB, using Maple bootloader"
+	@echo "  "
+	@echo "  You *must* set BOARD if not compiling for Maple (e.g."
+	@echo "  use BOARD=maple_mini for mini, etc.), and MEMORY_TARGET"
+	@echo "  if not compiling to Flash."
+	@echo "  "
+	@echo "  Valid BOARDs:"
+	@echo "      maple, maple_mini, maple_RET6, maple_native"
+	@echo "  "
+	@echo "  Valid MEMORY_TARGETs (default=flash):"
+	@echo "      ram:    Compile sketch code to ram"
+	@echo "      flash:  Compile sketch code to flash"
+	@echo "      jtag:   Compile sketch code for jtag; overwrites bootloader"
 	@echo "  "
 	@echo "  Other targets:"
-	@echo "      debug:  Start an openocd gdb server, port 3333"
+	@echo "      debug:  Start OpenOCD gdb server on port 3333, telnet on port 4444"
 	@echo "      clean: Remove all build and object files"
 	@echo "      help: Show this message"
+	@echo "      doxygen: Build Doxygen HTML and XML documentation"
+	@echo "      mrproper: Remove all generated files"
 	@echo "  "
 
 debug:
