@@ -36,7 +36,7 @@ cppSRCS_$(d) += wirish_math.cpp		 \
 		HardwareTimer.cpp
 
 ifneq ($(BOARD), VLDiscovery)
-cppSRCS_$(d) += usb_serial.cpp
+# cppSRCS_$(d) += usb_serial.cpp
 endif
 # TODO: Put this back in once we've got the necessary libmaple support back.
 cppSRCS_$(d) += $(WIRISH_BOARD_PATH)/board.cpp

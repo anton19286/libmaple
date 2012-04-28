@@ -56,6 +56,9 @@ typedef struct adc_reg_map {
     __io uint32 CR2;            ///< Control register 2
     __io uint32 SMPR1;          ///< Sample time register 1
     __io uint32 SMPR2;          ///< Sample time register 2
+#if STM32_MCU_SERIES == STM32_SERIES_L1
+    __io uint32 SMPR3;          ///< Sample time register 3
+#endif
     __io uint32 JOFR1;          ///< Injected channel data offset register 1
     __io uint32 JOFR2;          ///< Injected channel data offset register 2
     __io uint32 JOFR3;          ///< Injected channel data offset register 3
@@ -65,12 +68,20 @@ typedef struct adc_reg_map {
     __io uint32 SQR1;           ///< Regular sequence register 1
     __io uint32 SQR2;           ///< Regular sequence register 2
     __io uint32 SQR3;           ///< Regular sequence register 3
+#if STM32_MCU_SERIES == STM32_SERIES_L1
+    __io uint32 SQR4;           ///< Regular sequence register 4
+    __io uint32 SQR5;           ///< Regular sequence register 5
+#endif
     __io uint32 JSQR;           ///< Injected sequence register
     __io uint32 JDR1;           ///< Injected data register 1
     __io uint32 JDR2;           ///< Injected data register 2
     __io uint32 JDR3;           ///< Injected data register 3
     __io uint32 JDR4;           ///< Injected data register 4
     __io uint32 DR;             ///< Regular data register
+#if STM32_MCU_SERIES == STM32_SERIES_L1
+    __io uint32 CSR;            ///< Common status register
+    __io uint32 CCR;            ///< Common control register
+#endif
 } adc_reg_map;
 
 /** ADC device type. */
@@ -115,12 +126,20 @@ typedef struct adc_dev {
 #define ADC_SR_JEOC_BIT                 2
 #define ADC_SR_JSTRT_BIT                3
 #define ADC_SR_STRT_BIT                 4
+#define ADC_SR_OVR_BIT                  5
+#define ADC_SR_ADONS_BIT                6
+#define ADC_SR_RCNR_BIT                 8
+#define ADC_SR_JCNR_BIT                 9
 
 #define ADC_SR_AWD                      BIT(ADC_SR_AWD_BIT)
 #define ADC_SR_EOC                      BIT(ADC_SR_EOC_BIT)
 #define ADC_SR_JEOC                     BIT(ADC_SR_JEOC_BIT)
 #define ADC_SR_JSTRT                    BIT(ADC_SR_JSTRT_BIT)
 #define ADC_SR_STRT                     BIT(ADC_SR_STRT_BIT)
+#define ADC_SR_OVR                      BIT(ADC_SR_OVR_BIT)
+#define ADC_SR_ADONS                    BIT(ADC_SR_ADONS_BIT)
+#define ADC_SR_RCNR                     BIT(ADC_SR_RCNR_BIT)
+#define ADC_SR_JCNR                     BIT(ADC_SR_JCNR_BIT)
 
 /* Control register 1 */
 
@@ -132,8 +151,11 @@ typedef struct adc_dev {
 #define ADC_CR1_JAUTO_BIT               10
 #define ADC_CR1_DISCEN_BIT              11
 #define ADC_CR1_JDISCEN_BIT             12
+#define ADC_CR1_PDD_BIT                 16
+#define ADC_CR1_PDI_BIT                 17
 #define ADC_CR1_JAWDEN_BIT              22
 #define ADC_CR1_AWDEN_BIT               23
+#define ADC_CR1_OVRIE_BIT               26
 
 #define ADC_CR1_AWDCH                   (0x1F)
 #define ADC_CR1_EOCIE                   BIT(ADC_CR1_EOCIE_BIT)
@@ -145,8 +167,11 @@ typedef struct adc_dev {
 #define ADC_CR1_DISCEN                  BIT(ADC_CR1_DISCEN_BIT)
 #define ADC_CR1_JDISCEN                 BIT(ADC_CR1_JDISCEN_BIT)
 #define ADC_CR1_DISCNUM                 (0xE000)
+#define ADC_CR1_PDD                     BIT(ADC_CR1_PDD_BIT)
+#define ADC_CR1_PDI                     BIT(ADC_CR1_PDI_BIT)
 #define ADC_CR1_JAWDEN                  BIT(ADC_CR1_JAWDEN_BIT)
 #define ADC_CR1_AWDEN                   BIT(ADC_CR1_AWDEN_BIT)
+#define ADC_CR1_OVRIE                   BIT(ADC_CR1_OVRIE_BIT)
 
 /* Control register 2 */
 
