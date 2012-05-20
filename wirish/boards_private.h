@@ -39,6 +39,8 @@
 
 #include <libmaple/rcc.h>
 #include <libmaple/adc.h>
+#include <libmaple/pwr.h>
+#include <libmaple/flash.h>
 
 namespace wirish {
     namespace priv {
@@ -60,6 +62,7 @@ namespace wirish {
         void board_setup_gpio(void);
         void board_setup_timers(void);
         void board_setup_usb(void);
+	void board_setup_clocks(void);
 
     }
 }

@@ -39,6 +39,16 @@ extern "C"{
 
 #include <libmaple/libmaple.h>
 
+/**
+ * @brief SYSCLK sources
+ * @see rcc_switch_sysclk()
+ */
+typedef enum rcc_sysclk_src {
+    RCC_CLKSRC_HSI = 0x0,
+    RCC_CLKSRC_HSE = 0x1,
+    RCC_CLKSRC_PLL = 0x2,
+} rcc_sysclk_src;
+
 /*
  * Register map
  */

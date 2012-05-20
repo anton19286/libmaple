@@ -43,7 +43,7 @@
  * @see enableDebugPorts()
  */
 static inline void disableDebugPorts(void) {
-    afio_cfg_debug_ports(AFIO_DEBUG_NONE);
+//???    afio_cfg_debug_ports(AFIO_DEBUG_NONE);
 }
 
 /**
@@ -55,7 +55,7 @@ static inline void disableDebugPorts(void) {
  * @see disableDebugPorts()
  */
 static inline void enableDebugPorts(void) {
-    afio_cfg_debug_ports(AFIO_DEBUG_FULL_SWJ);
+//???    afio_cfg_debug_ports(AFIO_DEBUG_FULL_SWJ);
 }
 
 #endif

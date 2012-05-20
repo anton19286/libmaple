@@ -134,33 +134,33 @@ __default_handler:
 	.weak	__irq_adc
 	.globl	__irq_adc
 	.set	__irq_adc, __default_handler
-	.weak	__irq_usb_hp_can_tx
-	.globl	__irq_usb_hp_can_tx
-	.set	__irq_usb_hp_can_tx, __default_handler
-	.weak	__irq_usb_lp_can_rx0
-	.globl	__irq_usb_lp_can_rx0
-	.set	__irq_usb_lp_can_rx0, __default_handler
-	.weak	__irq_can_rx1
-	.globl	__irq_can_rx1
-	.set	__irq_can_rx1, __default_handler
-	.weak	__irq_can_sce
-	.globl	__irq_can_sce
-	.set	__irq_can_sce, __default_handler
+	.weak	__irq_usb_hp
+	.globl	__irq_usb_hp
+	.set	__irq_usb_hp, __default_handler
+	.weak	__irq_usb_lp
+	.globl	__irq_usb_lp
+	.set	__irq_usb_lp, __default_handler
+	.weak	__irq_dac
+	.globl	__irq_dac
+	.set	__irq_dac, __default_handler
+	.weak	__irq_comp
+	.globl	__irq_comp
+	.set	__irq_comp, __default_handler
 	.weak	__irq_exti9_5
 	.globl	__irq_exti9_5
 	.set	__irq_exti9_5, __default_handler
-	.weak	__irq_tim1_brk
-	.globl	__irq_tim1_brk
-	.set	__irq_tim1_brk, __default_handler
-	.weak	__irq_tim1_up
-	.globl	__irq_tim1_up
-	.set	__irq_tim1_up, __default_handler
-	.weak	__irq_tim1_trg_com
-	.globl	__irq_tim1_trg_com
-	.set	__irq_tim1_trg_com, __default_handler
-	.weak	__irq_tim1_cc
-	.globl	__irq_tim1_cc
-	.set	__irq_tim1_cc, __default_handler
+	.weak	__irq_lcd
+	.globl	__irq_lcd
+	.set	__irq_lcd, __default_handler
+	.weak	__irq_tim9
+	.globl	__irq_tim9
+	.set	__irq_tim9, __default_handler
+	.weak	__irq_tim10
+	.globl	__irq_tim10
+	.set	__irq_tim10, __default_handler
+	.weak	__irq_tim11
+	.globl	__irq_tim11
+	.set	__irq_tim11, __default_handler
 	.weak	__irq_tim2
 	.globl	__irq_tim2
 	.set	__irq_tim2, __default_handler
@@ -206,56 +206,9 @@ __default_handler:
 	.weak	__irq_usbwakeup
 	.globl	__irq_usbwakeup
 	.set	__irq_usbwakeup, __default_handler
-#if defined (STM32_HIGH_DENSITY)
-	.weak	__irq_tim8_brk
-	.globl	__irq_tim8_brk
-	.set	__irq_tim8_brk, __default_handler
-	.weak	__irq_tim8_up
-	.globl	__irq_tim8_up
-	.set	__irq_tim8_up, __default_handler
-	.weak	__irq_tim8_trg_com
-	.globl	__irq_tim8_trg_com
-	.set	__irq_tim8_trg_com, __default_handler
-	.weak	__irq_tim8_cc
-	.globl	__irq_tim8_cc
-	.set	__irq_tim8_cc, __default_handler
-	.weak	__irq_adc3
-	.globl	__irq_adc3
-	.set	__irq_adc3, __default_handler
-	.weak	__irq_fsmc
-	.globl	__irq_fsmc
-	.set	__irq_fsmc, __default_handler
-	.weak	__irq_sdio
-	.globl	__irq_sdio
-	.set	__irq_sdio, __default_handler
-	.weak	__irq_tim5
-	.globl	__irq_tim5
-	.set	__irq_tim5, __default_handler
-	.weak	__irq_spi3
-	.globl	__irq_spi3
-	.set	__irq_spi3, __default_handler
-	.weak	__irq_uart4
-	.globl	__irq_uart4
-	.set	__irq_uart4, __default_handler
-	.weak	__irq_uart5
-	.globl	__irq_uart5
-	.set	__irq_uart5, __default_handler
 	.weak	__irq_tim6
 	.globl	__irq_tim6
 	.set	__irq_tim6, __default_handler
 	.weak	__irq_tim7
 	.globl	__irq_tim7
 	.set	__irq_tim7, __default_handler
-	.weak	__irq_dma2_channel1
-	.globl	__irq_dma2_channel1
-	.set	__irq_dma2_channel1, __default_handler
-	.weak	__irq_dma2_channel2
-	.globl	__irq_dma2_channel2
-	.set	__irq_dma2_channel2, __default_handler
-	.weak	__irq_dma2_channel3
-	.globl	__irq_dma2_channel3
-	.set	__irq_dma2_channel3, __default_handler
-	.weak	__irq_dma2_channel4_5
-	.globl	__irq_dma2_channel4_5
-	.set	__irq_dma2_channel4_5, __default_handler
-#endif /* STM32_HIGH_DENSITY */

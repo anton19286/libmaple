@@ -134,16 +134,17 @@ void rcc_clk_init(rcc_sysclk_src sysclk_src,
  *                to a valid struct stm32f1_rcc_pll_data.
  */
 void rcc_configure_pll(rcc_pll_cfg *pll_cfg) {
-    stm32f1_rcc_pll_data *data = pll_cfg->data;
+    stm32l1_rcc_pll_data *data = pll_cfg->data;
     rcc_pll_multiplier pll_mul = data->pll_mul;
+    rcc_pll_divider pll_div = data->pll_div;
     uint32 cfgr;
 
     /* Check that the PLL is disabled. */
     ASSERT_FAULT(!rcc_is_clk_on(RCC_CLK_PLL));
 
     cfgr = RCC_BASE->CFGR;
-    cfgr &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL);
-    cfgr |= pll_cfg->pllsrc | pll_mul;
+    cfgr &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL | RCC_CFGR_PLLDIV);
+    cfgr |= pll_cfg->pllsrc | pll_mul | pll_div;
     RCC_BASE->CFGR = cfgr;
 }
 

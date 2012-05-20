@@ -37,19 +37,6 @@ extern "C"{
 #endif
 
 #include <libmaple/libmaple_types.h>
-
-/* Put the SYSCLK sources before the series header is included, as it
- * might need them. */
-/**
- * @brief SYSCLK sources
- * @see rcc_switch_sysclk()
- */
-typedef enum rcc_sysclk_src {
-    RCC_CLKSRC_HSI = 0x0,
-    RCC_CLKSRC_HSE = 0x1,
-    RCC_CLKSRC_PLL = 0x2,
-} rcc_sysclk_src;
-
 #include <series/rcc.h>
 
 /* Note: Beyond the usual (registers, etc.), it's up to the series

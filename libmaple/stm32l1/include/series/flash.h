@@ -25,16 +25,16 @@
  *****************************************************************************/
 
 /**
- * @file libmaple/stm32f1/flash.h
- * @brief STM32F1 Flash header.
+ * @file libmaple/stm32l1/flash.h
+ * @brief STM32L1 Flash header.
  *
  * Provides register map, base pointer, and register bit definitions
  * for the Flash controller on the STM32F1 line, along with
  * series-specific configuration values.
  */
 
-#ifndef _LIBMAPLE_STM32F1_FLASH_H_
-#define _LIBMAPLE_STM32F1_FLASH_H_
+#ifndef _LIBMAPLE_STM32L1_FLASH_H_
+#define _LIBMAPLE_STM32L1_FLASH_H_
 
 #ifdef __cplusplus
 extern "C"{
@@ -48,18 +48,22 @@ extern "C"{
 
 /** Flash register map type */
 typedef struct flash_reg_map {
-    __io uint32 ACR;            /**< Access control register */
-    __io uint32 KEYR;           /**< Key register */
-    __io uint32 OPTKEYR;        /**< OPTKEY register */
-    __io uint32 SR;             /**< Status register */
-    __io uint32 CR;             /**< Control register */
-    __io uint32 AR;             /**< Address register */
-    __io uint32 OBR;            /**< Option byte register */
-    __io uint32 WRPR;           /**< Write protection register */
+    __io uint32 ACR;             /**< Access control register */
+    __io uint32 PECR;            /**< Program/erase control register */
+    __io uint32 PDKEYR;          /**< Power down key register */
+    __io uint32 PEKEYR;          /**< SProgram/erase key register */
+    __io uint32 PRGKEYR;         /**< Program memory key register */
+    __io uint32 OPTKEYR;         /**< Option byte key register */
+    __io uint32 SR;              /**< Status register */
+    __io uint32 OBR;             /**< Option byte register */
+    __io uint32 WRPR1;           /**< Write protection register 1 */
+	const uint32 RESERVED[0x5C];
+    __io uint32 WRPR2;           /**< Write protection register 2 */
+    __io uint32 WRPR3;           /**< Write protection register 3 */
 } flash_reg_map;
 
 /** Flash register map base pointer */
-#define FLASH_BASE                      ((struct flash_reg_map*)0x40022000)
+#define FLASH_BASE                      ((struct flash_reg_map*)0x40023C00)
 
 /*
  * Register bit definitions
@@ -67,80 +71,96 @@ typedef struct flash_reg_map {
 
 /* Access control register */
 
-#define FLASH_ACR_PRFTBS_BIT            5
-#define FLASH_ACR_PRFTBE_BIT            4
-#define FLASH_ACR_HLFCYA_BIT            3
+#define FLASH_ACR_RUN_PD_BIT            4
+#define FLASH_ACR_SLEEP_PD_BIT          3
+#define FLASH_ACR_ACC64_BIT             2
+#define FLASH_ACR_PRFTEN_BIT            1
+#define FLASH_ACR_LATENCY_BIT           0
 
-#define FLASH_ACR_PRFTBS                BIT(FLASH_ACR_PRFTBS_BIT)
-#define FLASH_ACR_PRFTBE                BIT(FLASH_ACR_PRFTBE_BIT)
-#define FLASH_ACR_HLFCYA                BIT(FLASH_ACR_HLFCYA_BIT)
-#define FLASH_ACR_LATENCY               0x7
+#define FLASH_ACR_RUN_PD                BIT(FLASH_ACR_RUN_PD_BIT)
+#define FLASH_ACR_SLEEP_PD              BIT(FLASH_ACR_SLEEP_PD_BIT)
+#define FLASH_ACR_ACC64                 BIT(FLASH_ACR_ACC64_BIT)
+#define FLASH_ACR_PRFTEN                BIT(FLASH_ACR_PRFTEN_BIT)
+#define FLASH_ACR_LATENCY               BIT(FLASH_ACR_LATENCY_BIT)
 
 /* Status register */
 
-#define FLASH_SR_EOP_BIT                5
-#define FLASH_SR_WRPRTERR_BIT           4
-#define FLASH_SR_PGERR_BIT              2
+#define FLASH_SR_OPTVERRUSR_BIT         12
+#define FLASH_SR_OPTVERR_BIT            11
+#define FLASH_SR_SIZEERR_BIT            10
+#define FLASH_SR_PGAERR_BIT             9
+#define FLASH_SR_WRPERR_BIT             8
+#define FLASH_SR_READY_BIT              3
+#define FLASH_SR_ENDHV_BIT              2
+#define FLASH_SR_EOP_BIT                1
 #define FLASH_SR_BSY_BIT                0
 
+#define FLASH_SR_OPTVERRUSR         	BIT(FLASH_SR_OPTVERRUSR_BIT)
+#define FLASH_SR_OPTVERR            	BIT(FLASH_SR_OPTVERR_BIT)
+#define FLASH_SR_SIZEERR            	BIT(FLASH_SR_SIZEERR_BIT)
+#define FLASH_SR_PGAERR                 BIT(FLASH_SR_PGARR_BIT)
+#define FLASH_SR_WRPERR                 BIT(FLASH_SR_WRPERR_BIT)
+#define FLASH_SR_READY              	BIT(FLASH_SR_READY_BIT)
+#define FLASH_SR_ENDHV              	BIT(FLASH_SR_ENDHV_BIT)
 #define FLASH_SR_EOP                    BIT(FLASH_SR_EOP_BIT)
-#define FLASH_SR_WRPRTERR               BIT(FLASH_SR_WRPRTERR_BIT)
-#define FLASH_SR_PGERR                  BIT(FLASH_SR_PGERR_BIT)
 #define FLASH_SR_BSY                    BIT(FLASH_SR_BSY_BIT)
 
 /* Control register */
 
-#define FLASH_CR_EOPIE_BIT              12
-#define FLASH_CR_ERRIE_BIT              10
-#define FLASH_CR_OPTWRE_BIT             9
-#define FLASH_CR_LOCK_BIT               7
-#define FLASH_CR_STRT_BIT               6
-#define FLASH_CR_OPTER_BIT              5
-#define FLASH_CR_OPTPG_BIT              4
-#define FLASH_CR_MER_BIT                2
-#define FLASH_CR_PER_BIT                1
-#define FLASH_CR_PG_BIT                 0
+#define FLASH_PECR_OBL_LAUNCH_BIT         18
+#define FLASH_PECR_ERRIE_BIT              17
+#define FLASH_PECR_EOPIE_BIT              16
+#define FLASH_PECR_PARALLELBANK_BIT       15
+#define FLASH_PECR_FPRG_BIT		  10
+#define FLASH_PECR_ERASE_BIT       	  9
+#define FLASH_PECR_FTDW_BIT               8
+#define FLASH_PECR_DATA_BIT               4
+#define FLASH_PECR_PROG_BIT            	  3
+#define FLASH_PECR_OPTLOCK_BIT            2
+#define FLASH_PECR_PRGLOCK_BIT            1
+#define FLASH_PECR_PELOCK_BIT             0
 
-#define FLASH_CR_EOPIE                  BIT(FLASH_CR_EOPIE_BIT)
-#define FLASH_CR_ERRIE                  BIT(FLASH_CR_ERRIE_BIT)
-#define FLASH_CR_OPTWRE                 BIT(FLASH_CR_OPTWRE_BIT)
-#define FLASH_CR_LOCK                   BIT(FLASH_CR_LOCK_BIT)
-#define FLASH_CR_STRT                   BIT(FLASH_CR_STRT_BIT)
-#define FLASH_CR_OPTER                  BIT(FLASH_CR_OPTER_BIT)
-#define FLASH_CR_OPTPG                  BIT(FLASH_CR_OPTPG_BIT)
-#define FLASH_CR_MER                    BIT(FLASH_CR_MER_BIT)
-#define FLASH_CR_PER                    BIT(FLASH_CR_PER_BIT)
-#define FLASH_CR_PG                     BIT(FLASH_CR_PG_BIT)
+#define FLASH_PECR_OBL_LAUNCH         	  BIT(FLASH_PECR_OBL_LAUNCH_BIT)
+#define FLASH_PECR_ERRIE                  BIT(FLASH_PECR_ERRIE_BIT)
+#define FLASH_PECR_EOPIE                  BIT(FLASH_PECR_EOPIE_BIT)
+#define FLASH_PECR_PARALLELBANK    	  BIT(FLASH_PECR_PARALLELBANK_BIT)
+#define FLASH_PECR_FPRG		    	  BIT(FLASH_PECR_FPRG_BIT)
+#define FLASH_PECR_ERASE       		  BIT(FLASH_PECR_ERASE_BIT)
+#define FLASH_PECR_FTDW          	  BIT(FLASH_PECR_FTDW_BIT)
+#define FLASH_PECR_DATA           	  BIT(FLASH_PECR_DATA_BIT)
+#define FLASH_PECR_PROG	            	  BIT(FLASH_PECR_PROG_BIT)
+
+#define FLASH_PECR_OPTLOCK                BIT(FLASH_PECR_OPTLOCK_BIT)
+#define FLASH_PECR_PRGLOCK                BIT(FLASH_PECR_PRGLOCK_BIT)
+#define FLASH_PECR_PELOCK                 BIT(FLASH_PECR_PELOCK_BIT)
 
 /* Option byte register */
 
-#define FLASH_OBR_nRST_STDBY_BIT        4
-#define FLASH_OBR_nRST_STOP_BIT         3
-#define FLASH_OBR_WDG_SW_BIT            2
-#define FLASH_OBR_RDPRT_BIT             1
-#define FLASH_OBR_OPTERR_BIT            0
+#define FLASH_OBR_BFB2_BIT              23
+#define FLASH_OBR_nRST_STDBY_BIT        22
+#define FLASH_OBR_nRST_STOP_BIT         21
+#define FLASH_OBR_IWDG_SW_BIT           20
 
-#define FLASH_OBR_DATA1                 (0xFF << 18)
-#define FLASH_OBR_DATA0                 (0xFF << 10)
-#define FLASH_OBR_USER                  0x3FF
+#define FLASH_OBR_BOR_LEV               (0xF << 16)
+#define FLASH_OBR_RDPRT                 0xFF
+#define FLASH_OBR_BFB2                  BIT(FLASH_OBR_BFB2_BIT)
 #define FLASH_OBR_nRST_STDBY            BIT(FLASH_OBR_nRST_STDBY_BIT)
 #define FLASH_OBR_nRST_STOP             BIT(FLASH_OBR_nRST_STOP_BIT)
-#define FLASH_OBR_WDG_SW                BIT(FLASH_OBR_WDG_SW_BIT)
-#define FLASH_OBR_RDPRT                 BIT(FLASH_OBR_RDPRT_BIT)
-#define FLASH_OBR_OPTERR                BIT(FLASH_OBR_OPTERR_BIT)
+#define FLASH_OBR_IWDG_SW               BIT(FLASH_OBR_WDG_SW_BIT)
 
 /*
  * Series-specific configuration values.
  */
 
-#define FLASH_SAFE_WAIT_STATES          FLASH_WAIT_STATE_2
+#define FLASH_SAFE_WAIT_STATES          FLASH_WAIT_STATE_1
 
 /* Flash memory features available via ACR */
 enum {
-    FLASH_PREFETCH   = 0x10,
-    FLASH_HALF_CYCLE = 0x8,
-    FLASH_ICACHE     = 0x0,     /* Not available on STM32F1 */
-    FLASH_DCACHE     = 0x0,     /* Not available on STM32F1 */
+    FLASH_PREFETCH   = FLASH_ACR_PRFTEN,
+	FLASH_ACC64      = FLASH_ACR_ACC64,
+    FLASH_HALF_CYCLE = 0x0,	    /* Not available on STM32L1 */
+    FLASH_ICACHE     = 0x0,     /* Not available on STM32L1 */
+    FLASH_DCACHE     = 0x0,     /* Not available on STM32L1 */
 };
 
 #ifdef __cplusplus

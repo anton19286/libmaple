@@ -69,10 +69,6 @@ void adc_calibrate(const adc_dev *dev) {
  * Common routines
  */
 
-void adc_set_prescaler(adc_prescaler pre) {
-    rcc_set_prescaler(RCC_PRESCALER_ADC, (uint32)pre);
-}
-
 void adc_foreach(void (*fn)(const adc_dev*)) {
     fn(ADC1);
 }

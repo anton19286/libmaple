@@ -62,7 +62,7 @@ static void setup_adcs(void);
 
 void init(void) {
 //    setup_flash();
-//    setup_clocks();
+    wirish::priv::board_setup_clocks();
 //    setup_nvic();
 //    systick_init(SYSTICK_RELOAD_VAL);
     wirish::priv::board_setup_gpio();

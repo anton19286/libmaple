@@ -29,11 +29,11 @@ cppSRCS_$(d) += wirish_math.cpp		 \
 		wirish_analog.cpp	 \
 		wirish_time.cpp		 \
 		pwm.cpp 		 \
-		ext_interrupts.cpp	 \
 		wirish_digital.cpp       \
 		HardwareSerial.cpp	 \
 		HardwareSPI.cpp		 \
 		HardwareTimer.cpp
+#		ext_interrupts.cpp	 \
 
 ifneq ($(BOARD), VLDiscovery)
 # cppSRCS_$(d) += usb_serial.cpp

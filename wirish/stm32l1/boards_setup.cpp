@@ -25,11 +25,11 @@
 *****************************************************************************/
 
 /**
- * @file wirish/stm32f1/boards_setup.cpp
+ * @file wirish/stm32l1/boards_setup.cpp
  * @author Marti Bolivar <mbolivar@leaflabs.com>
- * @brief STM32F1 chip setup.
+ * @brief STM32L1 chip setup.
  *
- * This file controls how init() behaves on the STM32F1. Be very
+ * This file controls how init() behaves on the STM32L1. Be very
  * careful when changing anything here. Many of these values depend
  * upon each other.
  */
@@ -51,21 +51,72 @@
 #define BOARD_RCC_PLLMUL RCC_PLLMUL_4
 #endif
 
+#ifndef BOARD_RCC_PLLDIV
+#define BOARD_RCC_PLLDIV RCC_PLLDIV_2
+#endif
+
 /* FIXME: Reintroduce all "#if 0"'ed blocks once libmaple provides
  * these definitions again. */
 
 namespace wirish {
     namespace priv {
 
-        static stm32f1_rcc_pll_data pll_data = {BOARD_RCC_PLLMUL};
-        rcc_pll_cfg w_board_pll_cfg = {RCC_PLLSRC_HSE, &pll_data};
-        adc_prescaler w_adc_pre = ADC_PRE_PCLK2_DIV_6;
+        static stm32l1_rcc_pll_data pll_data = {BOARD_RCC_PLLMUL, BOARD_RCC_PLLDIV};
+        rcc_pll_cfg w_board_pll_cfg = {RCC_PLLSRC_HSI, &pll_data};
+        adc_prescaler w_adc_pre = ADC_PRE_DIV_1;
         adc_smp_rate w_adc_smp = ADC_SMPR_55_5;
 
         static void config_timer(timer_dev*);
 
+        void board_setup_clocks(void) {
+            // Turn off and reset the clock subsystems we'll be using.
+
+			rcc_turn_on_clk(RCC_CLK_MSI);
+			RCC_BASE->CFGR &= ~(RCC_CFGR_SW | RCC_CFGR_PPRE2 | RCC_CFGR_PPRE1 | RCC_CFGR_HPRE | RCC_CFGR_MCOSEL | RCC_CFGR_MCOPRE);
+			rcc_turn_off_clk(RCC_CLK_HSI);
+			rcc_turn_off_clk(RCC_CLK_HSE);
+			rcc_turn_off_clk(RCC_CLK_PLL);
+            rcc_disable_css();
+			RCC_BASE->CR &= ~(RCC_CR_HSEBYP);
+			wirish::priv::board_reset_pll();
+
+            // Clear clock readiness interrupt flags and turn off clock
+            // readiness interrupts.
+            RCC_BASE->CIR = 0x00000000;
+
+            rcc_turn_on_clk(RCC_CLK_HSI);
+            while (!rcc_is_clk_ready(RCC_CLK_HSI))
+                ;
+
+            FLASH_BASE->ACR |= FLASH_ACR_ACC64;
+            FLASH_BASE->ACR |= FLASH_ACR_PRFTEN;
+            FLASH_BASE->ACR |= FLASH_ACR_LATENCY;
+
+            // Enable power control
+            RCC_BASE->APB1ENR |= RCC_APB1ENR_PWREN;
+
+            // Set 1.8 V
+            PWR_BASE->CR &= ~PWR_CR_VOS;
+            PWR_BASE->CR |= PWR_CR_VOS_1_8V;
+            while((PWR_BASE->CSR & PWR_CSR_VOSF))
+                ;
+
+            // Configure AHBx, APBx, etc. prescalers and the main PLL.
+            wirish::priv::board_setup_clock_prescalers();
+            rcc_configure_pll(&wirish::priv::w_board_pll_cfg);
+
+            // Enable the PLL, and wait until it's ready.
+            rcc_turn_on_clk(RCC_CLK_PLL);
+            while (!rcc_is_clk_ready(RCC_CLK_PLL))
+                ;
+
+
+            // Finally, switch to the now-ready PLL as the main clock source.
+          rcc_switch_sysclk(RCC_CLKSRC_PLL);
+	}
+
         void board_reset_pll(void) {
-            // TODO
+            RCC_BASE->CFGR &= ~(RCC_CFGR_PLLSRC | RCC_CFGR_PLLMUL | RCC_CFGR_PLLDIV);
         }
 
         void board_setup_clock_prescalers(void) {
@@ -78,7 +129,7 @@ namespace wirish {
             gpio_init_all();
             // Initialize AFIO here, too, so peripheral remaps and external
             // interrupts work out of the box.
-            afio_init();
+//???            afio_init();
         }
 
         void board_setup_timers(void) {

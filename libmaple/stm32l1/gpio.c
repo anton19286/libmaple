@@ -39,7 +39,7 @@
 gpio_dev gpioa = {
     .regs      = GPIOA_BASE,
     .clk_id    = RCC_GPIOA,
-    .exti_port = AFIO_EXTI_PA,
+//    .exti_port = AFIO_EXTI_PA,
 };
 /** GPIO port A device. */
 gpio_dev* const GPIOA = &gpioa;
@@ -47,7 +47,7 @@ gpio_dev* const GPIOA = &gpioa;
 gpio_dev gpiob = {
     .regs      = GPIOB_BASE,
     .clk_id    = RCC_GPIOB,
-    .exti_port = AFIO_EXTI_PB,
+//    .exti_port = AFIO_EXTI_PB,
 };
 /** GPIO port B device. */
 gpio_dev* const GPIOB = &gpiob;
@@ -55,7 +55,7 @@ gpio_dev* const GPIOB = &gpiob;
 gpio_dev gpioc = {
     .regs      = GPIOC_BASE,
     .clk_id    = RCC_GPIOC,
-    .exti_port = AFIO_EXTI_PC,
+//    .exti_port = AFIO_EXTI_PC,
 };
 /** GPIO port C device. */
 gpio_dev* const GPIOC = &gpioc;
@@ -63,7 +63,7 @@ gpio_dev* const GPIOC = &gpioc;
 gpio_dev gpiod = {
     .regs      = GPIOD_BASE,
     .clk_id    = RCC_GPIOD,
-    .exti_port = AFIO_EXTI_PD,
+//    .exti_port = AFIO_EXTI_PD,
 };
 /** GPIO port D device. */
 gpio_dev* const GPIOD = &gpiod;
@@ -71,7 +71,7 @@ gpio_dev* const GPIOD = &gpiod;
 gpio_dev gpioe = {
     .regs      = GPIOE_BASE,
     .clk_id    = RCC_GPIOE,
-    .exti_port = AFIO_EXTI_PE,
+//    .exti_port = AFIO_EXTI_PE,
 };
 /** GPIO port E device. */
 gpio_dev* const GPIOE = &gpioe;
@@ -80,7 +80,7 @@ gpio_dev* const GPIOE = &gpioe;
 gpio_dev gpioh = {
     .regs      = GPIOH_BASE,
     .clk_id    = RCC_GPIOH,
-    .exti_port = AFIO_EXTI_PH,
+//    .exti_port = AFIO_EXTI_PH,
 };*/
 /** GPIO port H device. */
 // gpio_dev* const GPIOH = &gpioh;
@@ -200,6 +200,7 @@ void afio_init(void) {
  * @see afio_exti_num
  * @see afio_exti_port
  */
+/*
 void afio_exti_select(afio_exti_num exti, afio_exti_port gpio_port) {
     __io uint32 *exti_cr = &AFIO_BASE->EXTICR1 + exti / 4;
     uint32 shift = 4 * (exti % 4);
@@ -209,11 +210,13 @@ void afio_exti_select(afio_exti_num exti, afio_exti_port gpio_port) {
     cr |= gpio_port << shift;
     *exti_cr = cr;
 }
+*/
 
 /**
  * @brief Perform an alternate function remap.
  * @param remapping Remapping to perform.
  */
+/*
 void afio_remap(afio_remap_peripheral remapping) {
     if (remapping & AFIO_REMAP_USE_MAPR2) {
         remapping &= ~AFIO_REMAP_USE_MAPR2;
@@ -222,3 +225,4 @@ void afio_remap(afio_remap_peripheral remapping) {
         AFIO_BASE->MAPR |= remapping;
     }
 }
+*/

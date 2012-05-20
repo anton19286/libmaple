@@ -221,19 +221,18 @@ typedef enum {
 } adc_smp_rate;
 
 /**
- * @brief STM32F1 ADC prescalers, as divisors of PCLK2.
+ * @brief STM32L1 ADC prescalers, as divisors of PCLK2.
  */
 typedef enum adc_prescaler {
-    ADC_PRE_PCLK2_DIV_2 = RCC_ADCPRE_PCLK_DIV_2, /** PCLK2 divided by 2 */
-    ADC_PRE_PCLK2_DIV_4 = RCC_ADCPRE_PCLK_DIV_4, /** PCLK2 divided by 4 */
-    ADC_PRE_PCLK2_DIV_6 = RCC_ADCPRE_PCLK_DIV_6, /** PCLK2 divided by 6 */
-    ADC_PRE_PCLK2_DIV_8 = RCC_ADCPRE_PCLK_DIV_8, /** PCLK2 divided by 8 */
+    ADC_PRE_DIV_1, /** 16 MHz */
+    ADC_PRE_DIV_2, /** 8 MHz */
+    ADC_PRE_DIV_4, /** 4 MHz */
 } adc_prescaler;
-
 
 void adc_set_sample_rate(const adc_dev *dev, adc_smp_rate smp_rate);
 void adc_calibrate(const adc_dev *dev);
 uint16 adc_read(const adc_dev *dev, uint8 channel);
+
 
 /**
  * @brief Set external trigger conversion mode event for regular channels

@@ -24,7 +24,7 @@
  * SOFTWARE.
  *****************************************************************************/
 
-/* STM32F1 vector table */
+/* STM32L1 vector table */
 
 	.section	".stm32.interrupt_vector"
 
@@ -69,15 +69,15 @@ __stm32_vector_table:
 	.long	__irq_dma1_channel6
 	.long	__irq_dma1_channel7
 	.long	__irq_adc
-	.long	__irq_usb_hp_can_tx
-	.long	__irq_usb_lp_can_rx0
-	.long	__irq_can_rx1
-	.long	__irq_can_sce
+	.long	__irq_usb_hp
+	.long	__irq_usb_lp
+	.long	__irq_dac
+	.long	__irq_comp
 	.long	__irq_exti9_5
-	.long	__irq_tim1_brk
-	.long	__irq_tim1_up
-	.long	__irq_tim1_trg_com
-	.long	__irq_tim1_cc
+	.long	__irq_lcd
+	.long	__irq_tim9
+	.long	__irq_tim10
+	.long	__irq_tim11
 	.long	__irq_tim2
 	.long	__irq_tim3
 	.long	__irq_tim4
@@ -93,24 +93,7 @@ __stm32_vector_table:
 	.long	__irq_exti15_10
 	.long	__irq_rtcalarm
 	.long	__irq_usbwakeup
-#if defined (STM32_HIGH_DENSITY)
-	.long	__irq_tim8_brk
-	.long	__irq_tim8_up
-	.long	__irq_tim8_trg_com
-	.long	__irq_tim8_cc
-	.long	__irq_adc3
-	.long	__irq_fsmc
-	.long	__irq_sdio
-	.long	__irq_tim5
-	.long	__irq_spi3
-	.long	__irq_uart4
-	.long	__irq_uart5
 	.long	__irq_tim6
 	.long	__irq_tim7
-	.long	__irq_dma2_channel1
-	.long	__irq_dma2_channel2
-	.long	__irq_dma2_channel3
-	.long	__irq_dma2_channel4_5
-#endif /* STM32_HIGH_DENSITY */
 
 	.size	__stm32_vector_table, . - __stm32_vector_table

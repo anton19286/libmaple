@@ -49,9 +49,9 @@ extern "C" {
  * STM32F103 microcontrollers set below won't take effect.
  */
 
-#if defined(MCU_STM32L152RB)
+#if defined(MCU_STM32L152RB) || defined(MCU_STM32L151CB)
 #   define STM32_NR_GPIO_PORTS          6
-#   define STM32_DELAY_US_MULT         10 //???
+#   define STM32_DELAY_US_MULT          8 //???
 #   define STM32_SRAM_END              ((void*)0x20004000)
 #   define NR_GPIO_PORTS               STM32_NR_GPIO_PORTS
 #   define DELAY_US_MULT               STM32_DELAY_US_MULT
