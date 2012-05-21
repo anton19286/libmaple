@@ -39,7 +39,7 @@
 gpio_dev gpioa = {
     .regs      = GPIOA_BASE,
     .clk_id    = RCC_GPIOA,
-//    .exti_port = AFIO_EXTI_PA,
+    .exti_port = SYSCFG_EXTI_PA,
 };
 /** GPIO port A device. */
 gpio_dev* const GPIOA = &gpioa;
@@ -47,7 +47,7 @@ gpio_dev* const GPIOA = &gpioa;
 gpio_dev gpiob = {
     .regs      = GPIOB_BASE,
     .clk_id    = RCC_GPIOB,
-//    .exti_port = AFIO_EXTI_PB,
+    .exti_port = SYSCFG_EXTI_PB,
 };
 /** GPIO port B device. */
 gpio_dev* const GPIOB = &gpiob;
@@ -55,7 +55,7 @@ gpio_dev* const GPIOB = &gpiob;
 gpio_dev gpioc = {
     .regs      = GPIOC_BASE,
     .clk_id    = RCC_GPIOC,
-//    .exti_port = AFIO_EXTI_PC,
+    .exti_port = SYSCFG_EXTI_PC,
 };
 /** GPIO port C device. */
 gpio_dev* const GPIOC = &gpioc;
@@ -63,7 +63,7 @@ gpio_dev* const GPIOC = &gpioc;
 gpio_dev gpiod = {
     .regs      = GPIOD_BASE,
     .clk_id    = RCC_GPIOD,
-//    .exti_port = AFIO_EXTI_PD,
+    .exti_port = SYSCFG_EXTI_PD,
 };
 /** GPIO port D device. */
 gpio_dev* const GPIOD = &gpiod;
@@ -71,19 +71,18 @@ gpio_dev* const GPIOD = &gpiod;
 gpio_dev gpioe = {
     .regs      = GPIOE_BASE,
     .clk_id    = RCC_GPIOE,
-//    .exti_port = AFIO_EXTI_PE,
+    .exti_port = SYSCFG_EXTI_PE,
 };
 /** GPIO port E device. */
 gpio_dev* const GPIOE = &gpioe;
 
-/*
 gpio_dev gpioh = {
     .regs      = GPIOH_BASE,
     .clk_id    = RCC_GPIOH,
-//    .exti_port = AFIO_EXTI_PH,
-};*/
+    .exti_port = SYSCFG_EXTI_PH,
+};
 /** GPIO port H device. */
-// gpio_dev* const GPIOH = &gpioh;
+gpio_dev* const GPIOH = &gpioh;
 
 /*
  * GPIO routines
@@ -98,7 +97,7 @@ void gpio_init_all(void) {
     gpio_init(GPIOC);
     gpio_init(GPIOD);
     gpio_init(GPIOE);
-//    gpio_init(GPIOH);
+    gpio_init(GPIOH);
 }
 
 void set_two_bits(__io uint32 *reg, uint32 val, uint32 shift) {
@@ -179,50 +178,40 @@ void gpio_set_mode(gpio_dev *dev, uint8 pin, gpio_pin_mode mode) {
 }
 
 /*
- * AFIO
+ * SYSCFG
  */
 
 /**
- * @brief Initialize the AFIO clock, and reset the AFIO registers.
+ * @brief Initialize the SYSCFG clock, and reset the SYSCFG registers.
  */
-void afio_init(void) {
-    rcc_clk_enable(RCC_AFIO);
-    rcc_reset_dev(RCC_AFIO);
+void syscfg_init(void) {
+    rcc_clk_enable(RCC_SYSCFG);
+    rcc_reset_dev(RCC_SYSCFG);
 }
 
-#define AFIO_EXTI_SEL_MASK 0xF
+#define SYSCFG_EXTI_SEL_MASK 0xF
+
+/*
+void afio_exti_select(afio_exti_num exti, afio_exti_port gpio_port) {
+}
+void afio_remap(afio_remap_peripheral remapping) {
+}
+*/
 
 /**
  * @brief Select a source input for an external interrupt.
  *
  * @param exti      External interrupt.
  * @param gpio_port Port which contains pin to use as source input.
- * @see afio_exti_num
- * @see afio_exti_port
+ * @see syscfg_exti_num
+ * @see syscfg_exti_port
  */
-/*
-void afio_exti_select(afio_exti_num exti, afio_exti_port gpio_port) {
-    __io uint32 *exti_cr = &AFIO_BASE->EXTICR1 + exti / 4;
+void syscfg_exti_select(syscfg_exti_num exti, syscfg_exti_port gpio_port) {
+    __io uint32 *exti_cr = &SYSCFG_BASE->EXTICR1 + exti / 4;
     uint32 shift = 4 * (exti % 4);
     uint32 cr = *exti_cr;
 
-    cr &= ~(AFIO_EXTI_SEL_MASK << shift);
+    cr &= ~(SYSCFG_EXTI_SEL_MASK << shift);
     cr |= gpio_port << shift;
     *exti_cr = cr;
 }
-*/
-
-/**
- * @brief Perform an alternate function remap.
- * @param remapping Remapping to perform.
- */
-/*
-void afio_remap(afio_remap_peripheral remapping) {
-    if (remapping & AFIO_REMAP_USE_MAPR2) {
-        remapping &= ~AFIO_REMAP_USE_MAPR2;
-        AFIO_BASE->MAPR2 |= remapping;
-    } else {
-        AFIO_BASE->MAPR |= remapping;
-    }
-}
-*/

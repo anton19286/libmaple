@@ -71,14 +71,14 @@ namespace wirish {
         void board_setup_clocks(void) {
             // Turn off and reset the clock subsystems we'll be using.
 
-			rcc_turn_on_clk(RCC_CLK_MSI);
-			RCC_BASE->CFGR &= ~(RCC_CFGR_SW | RCC_CFGR_PPRE2 | RCC_CFGR_PPRE1 | RCC_CFGR_HPRE | RCC_CFGR_MCOSEL | RCC_CFGR_MCOPRE);
-			rcc_turn_off_clk(RCC_CLK_HSI);
-			rcc_turn_off_clk(RCC_CLK_HSE);
-			rcc_turn_off_clk(RCC_CLK_PLL);
+            rcc_turn_on_clk(RCC_CLK_MSI);
+            RCC_BASE->CFGR &= ~(RCC_CFGR_SW | RCC_CFGR_PPRE2 | RCC_CFGR_PPRE1 | RCC_CFGR_HPRE | RCC_CFGR_MCOSEL | RCC_CFGR_MCOPRE);
+            rcc_turn_off_clk(RCC_CLK_HSI);
+            rcc_turn_off_clk(RCC_CLK_HSE);
+            rcc_turn_off_clk(RCC_CLK_PLL);
             rcc_disable_css();
-			RCC_BASE->CR &= ~(RCC_CR_HSEBYP);
-			wirish::priv::board_reset_pll();
+            RCC_BASE->CR &= ~(RCC_CR_HSEBYP);
+            wirish::priv::board_reset_pll();
 
             // Clear clock readiness interrupt flags and turn off clock
             // readiness interrupts.
@@ -88,19 +88,17 @@ namespace wirish {
             while (!rcc_is_clk_ready(RCC_CLK_HSI))
                 ;
 
-            FLASH_BASE->ACR |= FLASH_ACR_ACC64;
-            FLASH_BASE->ACR |= FLASH_ACR_PRFTEN;
-            FLASH_BASE->ACR |= FLASH_ACR_LATENCY;
+            flash_enable_features(FLASH_ACC64);
+            flash_enable_features(FLASH_PREFETCH);
+            flash_set_latency(FLASH_WAIT_STATE_1);
 
             // Enable power control
             RCC_BASE->APB1ENR |= RCC_APB1ENR_PWREN;
-
             // Set 1.8 V
             PWR_BASE->CR &= ~PWR_CR_VOS;
             PWR_BASE->CR |= PWR_CR_VOS_1_8V;
             while((PWR_BASE->CSR & PWR_CSR_VOSF))
                 ;
-
             // Configure AHBx, APBx, etc. prescalers and the main PLL.
             wirish::priv::board_setup_clock_prescalers();
             rcc_configure_pll(&wirish::priv::w_board_pll_cfg);
@@ -109,10 +107,8 @@ namespace wirish {
             rcc_turn_on_clk(RCC_CLK_PLL);
             while (!rcc_is_clk_ready(RCC_CLK_PLL))
                 ;
-
-
             // Finally, switch to the now-ready PLL as the main clock source.
-          rcc_switch_sysclk(RCC_CLKSRC_PLL);
+            rcc_switch_sysclk(RCC_CLKSRC_PLL);
 	}
 
         void board_reset_pll(void) {
@@ -127,9 +123,9 @@ namespace wirish {
 
         void board_setup_gpio(void) {
             gpio_init_all();
-            // Initialize AFIO here, too, so peripheral remaps and external
+            // Initialize SYSCFG here, too, so external
             // interrupts work out of the box.
-//???            afio_init();
+            syscfg_init();
         }
 
         void board_setup_timers(void) {
@@ -137,10 +133,8 @@ namespace wirish {
         }
 
         void board_setup_usb(void) {
-#if 0
-#    if STM32_HAVE_USB
-            usb_cdcacm_enable(BOARD_USB_DISC_DEV, BOARD_USB_DISC_BIT);
-#    endif
+#if STM32_HAVE_USB
+//            usb_cdcacm_enable(BOARD_USB_DISC_DEV, BOARD_USB_DISC_BIT);
 #endif
         }
 
@@ -149,7 +143,6 @@ namespace wirish {
          */
 
         static void config_timer(timer_dev *dev) {
-#if 0
             timer_adv_reg_map *regs = (dev->regs).adv;
             const uint16 full_overflow = 0xFFFF;
             const uint16 half_duty = 0x8FFF;
@@ -180,7 +173,6 @@ namespace wirish {
             }
 
             timer_resume(dev);
-#endif
         }
     }
 }

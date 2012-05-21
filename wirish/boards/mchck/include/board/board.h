@@ -36,7 +36,7 @@
 #define BOARD_RCC_PLLMUL RCC_PLLMUL_4
 
 #define CYCLES_PER_MICROSECOND  32
-#define SYSTICK_RELOAD_VAL      31999 /* takes a cycle to reload */
+#define SYSTICK_RELOAD_VAL      3999 /* Hardware fixed, feeded with AHB/8 */
 
 #define BOARD_LED_PIN            15 /* led on PC13 */
 #define BOARD_BUTTON_PIN         30 /* dummy, PB2(BOOT1) */

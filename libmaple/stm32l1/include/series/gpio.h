@@ -28,7 +28,7 @@
 /**
  *  @file libmaple/stm32l1/gpio.h
  *  @brief General purpose I/O (GPIO) and Alternate Function I/O
- *         (AFIO) prototypes, defines, and inlined access functions.
+ *         (SYSCFG) prototypes, defines, and inlined access functions.
  */
 
 #ifndef _LIBMAPLE_STM32L1_GPIO_H_
@@ -72,10 +72,26 @@ typedef struct gpio_reg_map {
 /** GPIO port H register map base pointer */
 #define GPIOH_BASE                      ((struct gpio_reg_map*)0x40021400)
 
+/**
+ * @brief External interrupt line port selector.
+ *
+ * Used to determine which GPIO port to map an external interrupt line
+ * onto. */
+/* (See SYSCFG sections, below) */
+typedef enum syscfg_exti_port {
+    AFIO_EXTI_PA,               /**< Use port A (PAx) pin. */
+    AFIO_EXTI_PB,               /**< Use port B (PBx) pin. */
+    AFIO_EXTI_PC,               /**< Use port C (PCx) pin. */
+    AFIO_EXTI_PD,               /**< Use port D (PDx) pin. */
+    AFIO_EXTI_PE,               /**< Use port E (PEx) pin. */
+    AFIO_EXTI_PH,               /**< Use port H (PHx) pin. */
+} syscfg_exti_port;
+
 /** GPIO device type */
 typedef struct gpio_dev {
     gpio_reg_map *regs;       /**< Register map */
     rcc_clk_id clk_id;        /**< RCC clock information */
+    syscfg_exti_port exti_port; /**< SYSCFG external interrupt port value */
 } gpio_dev;
 
 extern gpio_dev gpioa;
@@ -184,7 +200,132 @@ typedef enum gpio_af {
     GPIO_AF_EVENTOUT             = 15, /**< EVENTOUT. */
 } gpio_af;
 
+/**
+ * @brief Get a GPIO port's corresponding syscfg_exti_port.
+ * @param dev GPIO device whose syscfg_exti_port to return.
+ */
+static inline syscfg_exti_port gpio_exti_port(gpio_dev *dev) {
+    return dev->exti_port;
+}
 
+/*
+ * SYSCFG register map
+ */
+
+/** SYSCFG register map */
+typedef struct syscfg_reg_map {
+    __io uint32 SYSCFG_MEMRMP;        /**< Memory remap register.  */
+    __io uint32 SYSCFG_PMC;        /**< Peripheral mode configuration 
+	                            register. (USB D+ pullup)*/
+    __io uint32 EXTICR1;     /**< External interrupt configuration
+                                register 1. */
+    __io uint32 EXTICR2;     /**< External interrupt configuration
+                                register 2. */
+    __io uint32 EXTICR3;     /**< External interrupt configuration
+                                register 3. */
+    __io uint32 EXTICR4;     /**< External interrupt configuration
+                                register 4. */
+} syscfg_reg_map;
+
+/** SYSCFG register map base pointer. */
+#define SYSCFG_BASE                       ((struct syscfg_reg_map *)0x40010000)
+
+/*
+ * SYSCFG register bit definitions
+ */
+
+/* External interrupt configuration register 1 */
+
+#define SYSCFG_EXTICR1_EXTI3              (0xF << 12)
+#define SYSCFG_EXTICR1_EXTI3_PA           (0x0 << 12)
+#define SYSCFG_EXTICR1_EXTI3_PB           (0x1 << 12)
+#define SYSCFG_EXTICR1_EXTI3_PC           (0x2 << 12)
+#define SYSCFG_EXTICR1_EXTI3_PD           (0x3 << 12)
+#define SYSCFG_EXTICR1_EXTI3_PE           (0x4 << 12)
+#define SYSCFG_EXTICR1_EXTI3_PH           (0x5 << 12)
+#define SYSCFG_EXTICR1_EXTI2              (0xF << 8)
+#define SYSCFG_EXTICR1_EXTI2_PA           (0x0 << 8)
+#define SYSCFG_EXTICR1_EXTI2_PB           (0x1 << 8)
+#define SYSCFG_EXTICR1_EXTI2_PC           (0x2 << 8)
+#define SYSCFG_EXTICR1_EXTI2_PD           (0x3 << 8)
+#define SYSCFG_EXTICR1_EXTI2_PE           (0x4 << 8)
+#define SYSCFG_EXTICR1_EXTI2_PH           (0x5 << 8)
+#define SYSCFG_EXTICR1_EXTI1              (0xF << 4)
+#define SYSCFG_EXTICR1_EXTI1_PA           (0x0 << 4)
+#define SYSCFG_EXTICR1_EXTI1_PB           (0x1 << 4)
+#define SYSCFG_EXTICR1_EXTI1_PC           (0x2 << 4)
+#define SYSCFG_EXTICR1_EXTI1_PD           (0x3 << 4)
+#define SYSCFG_EXTICR1_EXTI1_PE           (0x4 << 4)
+#define SYSCFG_EXTICR1_EXTI1_PH           (0x5 << 4)
+#define SYSCFG_EXTICR1_EXTI0              0xF
+#define SYSCFG_EXTICR1_EXTI0_PA           0x0
+#define SYSCFG_EXTICR1_EXTI0_PB           0x1
+#define SYSCFG_EXTICR1_EXTI0_PC           0x2
+#define SYSCFG_EXTICR1_EXTI0_PD           0x3
+#define SYSCFG_EXTICR1_EXTI0_PE           0x4
+#define SYSCFG_EXTICR1_EXTI0_PH           0x5
+
+
+/* External interrupt configuration register 2 */
+
+#define SYSCFG_EXTICR2_EXTI7              (0xF << 12)
+#define SYSCFG_EXTICR2_EXTI7_PA           (0x0 << 12)
+#define SYSCFG_EXTICR2_EXTI7_PB           (0x1 << 12)
+#define SYSCFG_EXTICR2_EXTI7_PC           (0x2 << 12)
+#define SYSCFG_EXTICR2_EXTI7_PD           (0x3 << 12)
+#define SYSCFG_EXTICR2_EXTI7_PE           (0x4 << 12)
+#define SYSCFG_EXTICR2_EXTI7_PH           (0x5 << 12)
+#define SYSCFG_EXTICR2_EXTI6              (0xF << 8)
+#define SYSCFG_EXTICR2_EXTI6_PA           (0x0 << 8)
+#define SYSCFG_EXTICR2_EXTI6_PB           (0x1 << 8)
+#define SYSCFG_EXTICR2_EXTI6_PC           (0x2 << 8)
+#define SYSCFG_EXTICR2_EXTI6_PD           (0x3 << 8)
+#define SYSCFG_EXTICR2_EXTI6_PE           (0x4 << 8)
+#define SYSCFG_EXTICR2_EXTI6_PH           (0x5 << 8)
+#define SYSCFG_EXTICR2_EXTI5              (0xF << 4)
+#define SYSCFG_EXTICR2_EXTI5_PA           (0x0 << 4)
+#define SYSCFG_EXTICR2_EXTI5_PB           (0x1 << 4)
+#define SYSCFG_EXTICR2_EXTI5_PC           (0x2 << 4)
+#define SYSCFG_EXTICR2_EXTI5_PD           (0x3 << 4)
+#define SYSCFG_EXTICR2_EXTI5_PE           (0x4 << 4)
+#define SYSCFG_EXTICR2_EXTI5_PH           (0x5 << 4)
+#define SYSCFG_EXTICR2_EXTI4              0xF
+#define SYSCFG_EXTICR2_EXTI4_PA           0x0
+#define SYSCFG_EXTICR2_EXTI4_PB           0x1
+#define SYSCFG_EXTICR2_EXTI4_PC           0x2
+#define SYSCFG_EXTICR2_EXTI4_PD           0x3
+#define SYSCFG_EXTICR2_EXTI4_PE           0x4
+#define SYSCFG_EXTICR2_EXTI4_PH           0x5
+
+/*
+ * SYSCFG convenience routines
+ */
+
+void syscfg_init(void);
+
+/**
+ * External interrupt line numbers.
+ */
+typedef enum syscfg_exti_num {
+    SYSCFG_EXTI_0,                /**< External interrupt line 0. */
+    SYSCFG_EXTI_1,                /**< External interrupt line 1. */
+    SYSCFG_EXTI_2,                /**< External interrupt line 2. */
+    SYSCFG_EXTI_3,                /**< External interrupt line 3. */
+    SYSCFG_EXTI_4,                /**< External interrupt line 4. */
+    SYSCFG_EXTI_5,                /**< External interrupt line 5. */
+    SYSCFG_EXTI_6,                /**< External interrupt line 6. */
+    SYSCFG_EXTI_7,                /**< External interrupt line 7. */
+    SYSCFG_EXTI_8,                /**< External interrupt line 8. */
+    SYSCFG_EXTI_9,                /**< External interrupt line 9. */
+    SYSCFG_EXTI_10,               /**< External interrupt line 10. */
+    SYSCFG_EXTI_11,               /**< External interrupt line 11. */
+    SYSCFG_EXTI_12,               /**< External interrupt line 12. */
+    SYSCFG_EXTI_13,               /**< External interrupt line 13. */
+    SYSCFG_EXTI_14,               /**< External interrupt line 14. */
+    SYSCFG_EXTI_15,               /**< External interrupt line 15. */
+} syscfg_exti_num;
+
+void syscfg_exti_select(syscfg_exti_num exti, syscfg_exti_port gpio_port);
 #ifdef __cplusplus
 }
 #endif

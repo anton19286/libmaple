@@ -25,12 +25,12 @@
  *****************************************************************************/
 
 /**
- * @file libmaple/stm32f1/include/series/nvic.h
- * @brief STM32F1 Nested Vectored Interrupt Controller (NVIC) support.
+ * @file libmaple/stm32l1/include/series/nvic.h
+ * @brief STM32L1 Nested Vectored Interrupt Controller (NVIC) support.
  */
 
-#ifndef _LIBMAPLE_STM32F1_NVIC_H_
-#define _LIBMAPLE_STM32F1_NVIC_H_
+#ifndef _LIBMAPLE_STM32L1_NVIC_H_
+#define _LIBMAPLE_STM32L1_NVIC_H_
 
 #ifdef __cplusplus
 extern "C"{
@@ -72,18 +72,16 @@ typedef enum nvic_irq_num {
     NVIC_DMA_CH5        = 15,   /**< DMA1 channel 5 */
     NVIC_DMA_CH6        = 16,   /**< DMA1 channel 6 */
     NVIC_DMA_CH7        = 17,   /**< DMA1 channel 7 */
-    NVIC_ADC_1_2        = 18,   /**< ADC1 and ADC2 */
-    NVIC_USB_HP_CAN_TX  = 19,   /**< USB high priority or CAN TX */
-    NVIC_USB_LP_CAN_RX0 = 20,   /**< USB low priority or CAN RX0 */
-    NVIC_CAN_RX1        = 21,   /**< CAN RX1 */
-    NVIC_CAN_SCE        = 22,   /**< CAN SCE */
+    NVIC_ADC_1          = 18,   /**< ADC1 */
+    NVIC_USB_HP         = 19,   /**< USB high priority */
+    NVIC_USB_LP_CAN_RX0 = 20,   /**< USB low priority */
+    NVIC_DAC            = 21,   /**< DAC */
+    NVIC_COMP           = 22,   /**< COMP */
     NVIC_EXTI_9_5       = 23,   /**< EXTI line [9:5] */
-    NVIC_TIMER1_BRK_TIMER9 = 24, /**< Timer 1 break, Timer 9. */
-    NVIC_TIMER1_UP_TIMER10 = 25, /**< Timer 1 update, Timer 10. */
-    NVIC_TIMER1_TRG_COM_TIMER11 = 26, /**<
-                                       * Timer 1 trigger and commutation,
-                                       * Timer 11. */
-    NVIC_TIMER1_CC      = 27,   /**< Timer 1 capture/compare */
+    NVIC_LCD            = 24, /**< LCD */
+    NVIC_TIMER9         = 25, /**< Timer 9 */
+    NVIC_TIMER10        = 26, /**< Timer 10 */
+    NVIC_TIMER11        = 27,   /**< Timer 11 */
     NVIC_TIMER2         = 28,   /**< Timer 2 */
     NVIC_TIMER3         = 29,   /**< Timer 3 */
     NVIC_TIMER4         = 30,   /**< Timer 4 */
@@ -100,59 +98,19 @@ typedef enum nvic_irq_num {
     NVIC_RTCALARM       = 41,   /**< RTC alarm through EXTI line */
     NVIC_USBWAKEUP      = 42,   /**< USB wakeup from suspend through
                                      EXTI line */
-    NVIC_TIMER8_BRK_TIMER12 = 43, /**< Timer 8 break, timer 12  */
-    NVIC_TIMER8_UP_TIMER13 = 44, /**< Timer 8 update, timer 13 */
-    NVIC_TIMER8_TRG_COM_TIMER14 = 45, /**<
-                                       * Timer 8 trigger and commutation,
-                                       * Timer 14. */
-    NVIC_TIMER8_CC      = 46,   /**< Timer 8 capture/compare */
-    NVIC_ADC3           = 47,   /**< ADC3 */
-    NVIC_FSMC           = 48,   /**< FSMC */
-    NVIC_SDIO           = 49,   /**< SDIO */
-    NVIC_TIMER5         = 50,   /**< Timer 5 */
-    NVIC_SPI3           = 51,   /**< SPI3 */
-    NVIC_UART4          = 52,   /**< UART4 */
-    NVIC_UART5          = 53,   /**< UART5 */
-    NVIC_TIMER6         = 54,   /**< Timer 6 */
-    NVIC_TIMER7         = 55,   /**< Timer 7 */
-    NVIC_DMA2_CH1       = 56,   /**< DMA2 channel 1 */
-    NVIC_DMA2_CH2       = 57,   /**< DMA2 channel 2 */
-    NVIC_DMA2_CH3       = 58,   /**< DMA2 channel 3 */
-    NVIC_DMA2_CH_4_5    = 59,   /**< DMA2 channels 4 and 5 */
+    NVIC_TIMER6         = 43,   /**< Timer 6 */
+    NVIC_TIMER7         = 44,   /**< Timer 7 */
 
-    /* Old enumerators kept around for backwards compatibility: */
-    NVIC_TIMER1_BRK =
-        NVIC_TIMER1_BRK_TIMER9, /**< @brief (Deprecated) Timer 1 break
-                                  *
-                                  * For backwards compatibility only.
-                                  * Use NVIC_TIMER1_BRK_TIMER9 instead. */
-    NVIC_TIMER1_UP =
-        NVIC_TIMER1_UP_TIMER10, /**< @brief (Deprecated) Timer 1 update.
-                                  *
-                                  * For backwards compatibility only.
-                                  * Use NVIC_TIMER1_UP_TIMER10 instead. */
-    NVIC_TIMER1_TRG_COM =
-        NVIC_TIMER1_TRG_COM_TIMER11, /**< @brief (deprecated) Timer 1 trigger
-                                      *          and commutation.
-                                      *
-                                      * For backwards compatibility only.
-                                      * Use NVIC_TIMER1_TRG_COM_TIMER11
-                                      * instead. */
-    NVIC_TIMER8_BRK =
-        NVIC_TIMER8_BRK_TIMER12, /**< @brief (deprecated) Timer 8 break
-                                  *
-                                  * For backwards compatibility only.
-                                  * Use NVIC_TIMER8_BRK_TIMER12 instead. */
-    NVIC_TIMER8_UP =
-        NVIC_TIMER8_UP_TIMER13, /**< @brief (deprecated) Timer 8 update
-                                  * For backwards compatibility only.
-                                  * Use NVIC_TIMER8_UP_TIMER13 instead. */
-    NVIC_TIMER8_TRG_COM =
-        NVIC_TIMER8_TRG_COM_TIMER14, /**< @brief (deprecated) Timer 8 trigger
-                                      *          and commutation.
-                                      * For backwards compatibility only.
-                                      * Use NVIC_TIMER8_TRG_COM_TIMER14
-                                      * instead. */
+
+    NVIC_TIMER1_UP_TIMER10 = 45,
+    NVIC_TIMER8_UP_TIMER13 = 46,
+    NVIC_TIMER1_CC      = 47,
+    NVIC_TIMER8_CC      = 48,
+    NVIC_TIMER1_TRG_COM_TIMER11 = 49,
+    NVIC_TIMER8_TRG_COM_TIMER14 = 50,
+    NVIC_TIMER1_BRK_TIMER9 = 51,
+    NVIC_TIMER8_BRK_TIMER12 = 52,
+    NVIC_TIMER5         = 53
 } nvic_irq_num;
 
 static inline void nvic_irq_disable_all(void) {

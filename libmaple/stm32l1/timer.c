@@ -60,12 +60,10 @@ timer_dev *TIMER6 = &timer6;
 /** Timer 7 device (basic) */
 timer_dev *TIMER7 = &timer7;
 
-/* TIM9 has UIE, CC1IE, CC2IE, TIE bits in DIER. */
+/* TIM9-11 has UIE, CC1IE, CC2IE, TIE bits in DIER. */
 static DECLARE_RESTRICTED_GENERAL_TIMER(timer9, 9, TIMER_DIER_TIE_BIT);
-/* TIM10 has UIE, CC1IE. */
-static DECLARE_RESTRICTED_GENERAL_TIMER(timer10, 10, TIMER_DIER_CC1IE_BIT);
-/* TIM11 has UIE, CC1IE. */
-static DECLARE_RESTRICTED_GENERAL_TIMER(timer11, 11, TIMER_DIER_CC1IE_BIT);
+static DECLARE_RESTRICTED_GENERAL_TIMER(timer10, 10, TIMER_DIER_TIE_BIT);
+static DECLARE_RESTRICTED_GENERAL_TIMER(timer11, 11, TIMER_DIER_TIE_BIT);
 
 /** Timer 9 device (general-purpose) */
 timer_dev *TIMER9 = &timer9;
@@ -83,7 +81,6 @@ timer_dev *TIMER11 = &timer11;
  * @param fn Function to call on each timer device.
  */
 void timer_foreach(void (*fn)(timer_dev*)) {
-    fn(TIMER1);
     fn(TIMER2);
     fn(TIMER3);
     fn(TIMER4);

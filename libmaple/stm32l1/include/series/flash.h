@@ -157,7 +157,7 @@ typedef struct flash_reg_map {
 /* Flash memory features available via ACR */
 enum {
     FLASH_PREFETCH   = FLASH_ACR_PRFTEN,
-	FLASH_ACC64      = FLASH_ACR_ACC64,
+    FLASH_ACC64      = FLASH_ACR_ACC64,
     FLASH_HALF_CYCLE = 0x0,	    /* Not available on STM32L1 */
     FLASH_ICACHE     = 0x0,     /* Not available on STM32L1 */
     FLASH_DCACHE     = 0x0,     /* Not available on STM32L1 */
